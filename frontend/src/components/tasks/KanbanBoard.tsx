@@ -1,169 +1,263 @@
 import { useState, useEffect } from 'react';
 import { tasksService } from '../../services/tasks';
+import { workflowService } from '../../services/workflow';
 import type { TaskItem } from '../../types/api';
+import type { WorkflowState } from '../../services/workflow';
 import CreateTaskModal from './CreateTaskModal';
-
-const statusColumns = [
-  { key: 'TODO', title: 'To Do', color: 'bg-gray-600' },
-  { key: 'IN_PROGRESS', title: 'In Progress', color: 'bg-blue-600' },
-  { key: 'COMPLETED', title: 'Completed', color: 'bg-green-600' },
-  { key: 'BLOCKED', title: 'Blocked', color: 'bg-red-600' },
-];
-
-const priorityColors = {
-  'Low': 'border-l-green-400',
-  'Medium': 'border-l-yellow-400',
-  'High': 'border-l-red-400',
-  'Critical': 'border-l-red-600',
-};
+import TaskStatusBadge from './TaskStatusBadge';
+import TaskAuditHistory from './TaskAuditHistory';
+import ProjectSelector from '../layout/ProjectSelector';
 
 export default function KanbanBoard() {
   const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const [workflowStates, setWorkflowStates] = useState<WorkflowState[]>([]);
+  const [selectedProject, setSelectedProject] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [auditTaskId, setAuditTaskId] = useState<number | null>(null);
 
-  const fetchTasks = async () => {
+  const fetchData = async () => {
+    if (!selectedProject) return;
+    
     try {
       setLoading(true);
-      const tasksData = await tasksService.getTasks();
-      setTasks(tasksData);
+      setError(null);
+      
+      // fetch tasks and workflow states for the selected project
+      const [tasksData, statesData] = await Promise.all([
+        tasksService.getTasks(),
+        workflowService.getWorkflowStates(selectedProject)
+      ]);
+      
+      // filter tasks for the selected project
+      const projectTasks = tasksData.filter(task => task.projectId === selectedProject);
+      setTasks(projectTasks);
+      setWorkflowStates(statesData.sort((a, b) => a.order - b.order));
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch tasks');
+      setError(err.message || 'Failed to fetch data');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    fetchData();
+  }, [selectedProject]);
+
+  const handleProjectChange = (projectId: number) => {
+    setSelectedProject(projectId);
+  };
 
   const handleTaskCreated = () => {
-    fetchTasks();
+    fetchData();
   };
 
-  const getTasksByStatus = (status: string) => {
-    return tasks.filter(task => task.workflowStateName === status);
+  const handleStatusChange = async (taskId: number, newStateId: number) => {
+    try {
+      await workflowService.transitionTask(taskId, { 
+        toStateId: newStateId,
+        comment: `Changed via Kanban board`
+      });
+      
+      // refresh
+      fetchData();
+    } catch (err: any) {
+      setError(err.message || 'Failed to change task status');
+    }
   };
 
-  if (loading) {
-    return (
-      <div className="p-6 flex items-center justify-center">
-        <div className="text-white">Loading tasks...</div>
-      </div>
-    );
-  }
+  const getTasksByStateId = (stateId: number) => {
+    return tasks.filter(task => task.workflowStateId === stateId);
+  };
 
-  if (error) {
-    return (
-      <div className="p-6">
-        <div className="bg-red-900 border border-red-700 text-red-100 px-4 py-3 rounded">
-          Error: {error}
-        </div>
-      </div>
-    );
-  }
+  const getStateColor = (color?: string) => {
+    switch (color) {
+      case '#gray': return 'bg-gray-600';
+      case '#blue': return 'bg-blue-600';
+      case '#yellow': return 'bg-yellow-600';
+      case '#green': return 'bg-green-600';
+      case '#red': return 'bg-red-600';
+      default: return 'bg-gray-600';
+    }
+  };
 
   return (
     <div className="p-6">
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-white mb-2">kanban board</h2>
-            <p className="text-gray-400">drag and drop tasks to update status</p>
-          </div>
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2"
-          >
-            <span>+</span>
-            <span>Create Task</span>
-          </button>
-        </div>
+      {/* Project Selector for filtering tasks */}
+      <div className="mb-6">
+        <ProjectSelector
+          selectedProjectId={selectedProject}
+          onProjectChange={handleProjectChange}
+          onCreateProject={() => {}}
+        />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {statusColumns.map((column) => {
-          const columnTasks = getTasksByStatus(column.key);
-          
-          return (
-            <div key={column.key} className="bg-gray-800 rounded-lg border border-gray-700">
-              <div className={`p-4 ${column.color} rounded-t-lg`}>
-                <h3 className="text-white font-semibold flex items-center justify-between">
-                  {column.title}
-                  <span className="bg-gray-900 text-xs px-2 py-1 rounded-full">
-                    {columnTasks.length}
-                  </span>
-                </h3>
+      {!selectedProject ? (
+        <div className="text-center py-12">
+          <h3 className="text-xl text-gray-400 mb-2">Select a Project</h3>
+          <p className="text-gray-500">Choose a project to view its tasks in the Kanban board</p>
+        </div>
+      ) : (
+        <>
+          <div className="mb-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-2">Kanban Board</h2>
+                <p className="text-gray-400">Manage tasks across workflow states • Click status badges to change states</p>
               </div>
+              <button
+                onClick={() => setIsCreateModalOpen(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2"
+              >
+                <span>+</span>
+                <span>Create Task</span>
+              </button>
+            </div>
+          </div>
 
-              <div className="p-4 space-y-3 min-h-[400px]">
-                {columnTasks.length === 0 ? (
-                  <div className="text-gray-400 text-sm text-center py-8">
-                    No tasks in {column.title.toLowerCase()}
-                  </div>
-                ) : (
-                  columnTasks.map((task) => (
-                    <div
-                      key={task.id}
-                      className={`bg-gray-700 rounded-lg p-4 border-l-4 hover:bg-gray-650 transition-colors cursor-pointer ${
-                        priorityColors[task.priority as keyof typeof priorityColors] || 'border-l-gray-400'
-                      }`}
-                    >
-                      <h4 className="text-white font-medium mb-2 text-sm">
-                        {task.title}
-                      </h4>
-                      
-                      {task.description && (
-                        <p className="text-gray-300 text-xs mb-3 line-clamp-2">
-                          {task.description}
-                        </p>
-                      )}
+          {loading && (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              <span className="ml-3 text-gray-400">Loading tasks...</span>
+            </div>
+          )}
 
-                      <div className="flex items-center justify-between text-xs text-gray-400">
-                        <div className="flex items-center space-x-2">
-                          <span className="flex items-center">
-                            📂 {task.projectName}
-                          </span>
-                        </div>
-                        
-                        <div className="flex items-center space-x-2">
-                          {task.dueDate && (
-                            <span className="flex items-center">
-                              📅 {new Date(task.dueDate).toLocaleDateString()}
-                            </span>
-                          )}
-                          <span className={`px-2 py-1 rounded text-xs ${
-                            task.priority === 'Critical' ? 'bg-red-900 text-red-200' :
-                            task.priority === 'High' ? 'bg-red-800 text-red-200' :
-                            task.priority === 'Medium' ? 'bg-yellow-800 text-yellow-200' :
-                            'bg-green-800 text-green-200'
-                          }`}>
-                            {task.priority.toLowerCase()}
-                          </span>
-                        </div>
-                      </div>
+          {error && (
+            <div className="bg-red-900 border border-red-700 text-red-100 px-4 py-3 rounded mb-6">
+              {error}
+            </div>
+          )}
 
-                      {task.assigneeName && (
-                        <div className="mt-2 text-xs text-gray-400">
-                          👤 {task.assigneeName}
+          {!loading && !error && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {workflowStates.map((state) => {
+                const columnTasks = getTasksByStateId(state.id);
+                
+                return (
+                  <div key={state.id} className="bg-gray-800 rounded-lg border border-gray-700">
+                    <div className={`p-4 ${getStateColor(state.color)} rounded-t-lg`}>
+                      <h3 className="text-white font-semibold flex items-center justify-between">
+                        {state.name}
+                        <span className="bg-gray-900 text-xs px-2 py-1 rounded-full">
+                          {columnTasks.length}
+                        </span>
+                      </h3>
+                    </div>
+
+                    <div className="p-4 space-y-3 min-h-[400px]">
+                      {columnTasks.length === 0 ? (
+                        <div className="text-gray-400 text-sm text-center py-8">
+                          No tasks in {state.name.toLowerCase()}
                         </div>
+                      ) : (
+                        columnTasks.map((task) => (
+                          <TaskCard
+                            key={task.id}
+                            task={task}
+                            workflowStates={workflowStates}
+                            onStatusChange={handleStatusChange}
+                            onShowHistory={(taskId) => setAuditTaskId(taskId)}
+                          />
+                        ))
                       )}
                     </div>
-                  ))
-                )}
-              </div>
+                  </div>
+                );
+              })}
             </div>
-          );
-        })}
-      </div>
+          )}
+        </>
+      )}
 
+      {/* Modals */}
       <CreateTaskModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onTaskCreated={handleTaskCreated}
       />
+
+      {auditTaskId && (
+        <TaskAuditHistory
+          taskId={auditTaskId}
+          isOpen={!!auditTaskId}
+          onClose={() => setAuditTaskId(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+// taskcard
+interface TaskCardProps {
+  task: TaskItem;
+  workflowStates: WorkflowState[];
+  onStatusChange: (taskId: number, newStateId: number) => void;
+  onShowHistory: (taskId: number) => void;
+}
+
+function TaskCard({ task, workflowStates, onStatusChange, onShowHistory }: TaskCardProps) {
+  const currentState = workflowStates.find(s => s.id === task.workflowStateId);
+  if (!currentState) return null;
+
+  const priorityColors = {
+    'Low': 'border-l-green-400',
+    'Medium': 'border-l-yellow-400', 
+    'High': 'border-l-red-400',
+    'Critical': 'border-l-red-600',
+  };
+
+  return (
+    <div
+      className={`bg-gray-700 rounded-lg p-4 border-l-4 hover:bg-gray-650 transition-colors ${
+        priorityColors[task.priority as keyof typeof priorityColors] || 'border-l-gray-400'
+      }`}
+    >
+      <h4 className="text-white font-medium mb-2 text-sm">
+        {task.title}
+      </h4>
+      
+      {task.description && (
+        <p className="text-gray-300 text-xs mb-3 line-clamp-2">
+          {task.description}
+        </p>
+      )}
+
+      <div className="flex items-center justify-between mb-3">
+        <TaskStatusBadge
+          currentState={currentState}
+          availableStates={workflowStates}
+          onStateChange={(newStateId) => onStatusChange(task.id, newStateId)}
+        />
+        
+        <button
+          onClick={() => onShowHistory(task.id)}
+          className="text-xs text-gray-400 hover:text-blue-400 transition-colors"
+          title="View history"
+        >
+          📋 History
+        </button>
+      </div>
+
+      <div className="flex items-center justify-between text-xs text-gray-400">
+        <div className="flex items-center space-x-2">
+          <span className="flex items-center">
+            📂 {task.projectName}
+          </span>
+        </div>
+        
+        {task.dueDate && (
+          <span className="flex items-center">
+            📅 {new Date(task.dueDate).toLocaleDateString('pl-PL')}
+          </span>
+        )}
+      </div>
+
+      {task.assigneeName && (
+        <div className="mt-2 text-xs text-gray-400">
+          👤 {task.assigneeName}
+        </div>
+      )}
     </div>
   );
 }

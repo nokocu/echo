@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './components/layout/Layout';
 import Dashboard from './components/dashboard/Dashboard';
 import KanbanBoard from './components/tasks/KanbanBoard';
+import ProjectsManager from './components/projects/ProjectsManager';
 import LoginForm from './components/auth/LoginForm';
 import RegisterForm from './components/auth/RegisterForm';
 
@@ -25,12 +26,7 @@ function AuthenticatedApp() {
       case 'tasks':
         return <KanbanBoard />;
       case 'projects':
-        return (
-          <div className="p-6">
-            <h2 className="text-2xl font-bold text-white mb-4">Projects</h2>
-            <p className="text-gray-400">project management</p>
-          </div>
-        );
+        return <ProjectsManager />;
       case 'workflow':
         return (
           <div className="p-6">
