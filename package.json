@@ -1,0 +1,23 @@
+{
+  "name": "echo",
+  "version": "1.0.0",
+  "description": "**Focus:** C#, .NET, React, SQL, BPMN",
+  "main": "index.js",
+  "scripts": {
+    "frontend": "cd frontend && npm run dev",
+    "frontend_build": "cd frontend && npm run build",
+    "backend": "cd backend && dotnet run",
+    "backend_build": "cd backend && dotnet build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nokocu/echo.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nokocu/echo/issues"
+  },
+  "homepage": "https://github.com/nokocu/echo#readme"
+}
