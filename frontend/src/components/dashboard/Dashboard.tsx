@@ -4,10 +4,10 @@ import type { TaskItem, Project } from '../../types/api';
 import CreateTaskModal from '../tasks/CreateTaskModal';
 
 const statusColors = {
-  'TODO': 'bg-gray-600',
-  'IN_PROGRESS': 'bg-blue-600',
-  'COMPLETED': 'bg-green-600',
-  'BLOCKED': 'bg-red-600',
+  'Todo': 'bg-gray-600',
+  'In Progress': 'bg-blue-600',
+  'Review': 'bg-yellow-600',
+  'Done': 'bg-green-600',
 };
 
 const priorityColors = {
@@ -30,14 +30,8 @@ export default function Dashboard() {
       const tasksData = await tasksService.getTasks();
       setTasks(tasksData);
       
-      // try to get projects, dont fail if endpoint doesnt exist yet
-      try {
-        const projectsData = await tasksService.getProjects();
-        setProjects(projectsData);
-      } catch (projectError) {
-        console.log('Projects endpoint not available yet');
-        setProjects([]);
-      }
+      const projectsData = await tasksService.getProjects();
+      setProjects(projectsData);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch data');
     } finally {
@@ -71,9 +65,10 @@ export default function Dashboard() {
     );
   }
 
-  const todoTasks = tasks.filter(task => task.workflowStateName === 'TODO');
-  const inProgressTasks = tasks.filter(task => task.workflowStateName === 'IN_PROGRESS');
-  const completedTasks = tasks.filter(task => task.workflowStateName === 'COMPLETED');
+  const todoTasks = tasks.filter(task => task.workflowStateName === 'Todo');
+  const inProgressTasks = tasks.filter(task => task.workflowStateName === 'In Progress');
+  const reviewTasks = tasks.filter(task => task.workflowStateName === 'Review');
+  const completedTasks = tasks.filter(task => task.workflowStateName === 'Done');
   return (
     <div className="p-6">
       <div className="mb-8">
@@ -92,17 +87,41 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-8">
+          <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
+            <h3 className="text-lg font-semibold text-white mb-2">total tasks</h3>
+            <p className="text-3xl font-bold text-white">{tasks.length}</p>
+            <p className="text-sm text-gray-400 mt-1">across all projects</p>
+          </div>
+          <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
+            <h3 className="text-lg font-semibold text-white mb-2">total projects</h3>
+            <p className="text-3xl font-bold text-white">{projects.length}</p>
+            <p className="text-sm text-gray-400 mt-1">active workspaces</p>
+          </div>
+        </div>
+
+
+
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
         <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <h3 className="text-lg font-semibold text-white mb-2">total tasks</h3>
-          <p className="text-3xl font-bold text-blue-400">{tasks.length}</p>
-          <p className="text-sm text-gray-400 mt-1">across all projects</p>
+          <h3 className="text-lg font-semibold text-white mb-2">todo</h3>
+          <p className="text-3xl font-bold text-gray-400">{todoTasks.length}</p>
+          <p className="text-sm text-gray-400 mt-1">ready to start</p>
         </div>
         
         <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
           <h3 className="text-lg font-semibold text-white mb-2">in progress</h3>
-          <p className="text-3xl font-bold text-yellow-400">{inProgressTasks.length}</p>
+          <p className="text-3xl font-bold text-blue-400">{inProgressTasks.length}</p>
           <p className="text-sm text-gray-400 mt-1">currently active</p>
+        </div>
+
+        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+          <h3 className="text-lg font-semibold text-white mb-2">in review</h3>
+          <p className="text-3xl font-bold text-yellow-400">{reviewTasks.length}</p>
+          <p className="text-sm text-gray-400 mt-1">awaiting review</p>
         </div>
         
         <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
@@ -132,26 +151,22 @@ export default function Dashboard() {
                     </h4>
                     <div className="flex items-center space-x-4 text-sm text-gray-400">
                       <span className="flex items-center">
-                        <span className="mr-2">👤</span>
-                        {task.assigneeName || 'Unassigned'}
+                        <span className="mr-2">📂</span>
+                        {task.projectName}
                       </span>
                       <span className="flex items-center">
                         <span className="mr-2">📅</span>
                         {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date'}
                       </span>
-                      <span className="flex items-center">
-                        <span className="mr-2">📂</span>
-                        {task.projectName}
-                      </span>
                       <span className={`flex items-center ${priorityColors[task.priority as keyof typeof priorityColors] || 'text-gray-400'}`}>
                         <span className="mr-2">⚡</span>
-                        {task.priority.toLowerCase()}
+                        {task.priority}
                       </span>
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium text-white ${statusColors[task.workflowStateName as keyof typeof statusColors] || 'bg-gray-600'}`}>
-                      {task.workflowStateName.toLowerCase().replace('_', ' ')}
+                      {task.workflowStateName}
                     </span>
                   </div>
                 </div>
