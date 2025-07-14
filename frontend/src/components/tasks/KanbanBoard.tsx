@@ -8,10 +8,21 @@ import TaskStatusBadge from './TaskStatusBadge';
 import TaskAuditHistory from './TaskAuditHistory';
 import ProjectSelector from '../layout/ProjectSelector';
 
-export default function KanbanBoard() {
+interface KanbanBoardProps {
+  initialProjectId?: number | null;
+}
+
+export default function KanbanBoard({ initialProjectId }: KanbanBoardProps) {
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [workflowStates, setWorkflowStates] = useState<WorkflowState[]>([]);
-  const [selectedProject, setSelectedProject] = useState<number | null>(null);
+  const [selectedProject, setSelectedProject] = useState<number | null>(initialProjectId || null);
+
+  // update selected project when initialProjectId changes
+  useEffect(() => {
+    if (initialProjectId) {
+      setSelectedProject(initialProjectId);
+    }
+  }, [initialProjectId]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);

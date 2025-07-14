@@ -2,12 +2,21 @@ import { useState, useEffect } from 'react';
 import { tasksService } from '../../services/tasks';
 import type { Project } from '../../types/api';
 import CreateProjectModal from './CreateProjectModal';
+import EditProjectModal from './EditProjectModal';
+import DeleteProjectModal from './DeleteProjectModal';
 
-export default function ProjectsManager() {
+interface ProjectsManagerProps {
+  onViewTasks?: (projectId: number) => void;
+}
+
+export default function ProjectsManager({ onViewTasks }: ProjectsManagerProps) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   const fetchProjects = async () => {
     try {
@@ -32,6 +41,26 @@ export default function ProjectsManager() {
 
   const handleProjectCreated = () => {
     fetchProjects(); // refresh the projects list
+  };
+
+  const handleEditProject = (project: Project) => {
+    setSelectedProject(project);
+    setIsEditModalOpen(true);
+  };
+
+  const handleDeleteProject = (project: Project) => {
+    setSelectedProject(project);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleProjectUpdated = () => {
+    fetchProjects();
+    setSelectedProject(null);
+  };
+
+  const handleProjectDeleted = () => {
+    fetchProjects();
+    setSelectedProject(null);
   };
 
   if (loading) {
@@ -87,7 +116,13 @@ export default function ProjectsManager() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((project) => (
-            <ProjectCard key={project.id} project={project} />
+            <ProjectCard 
+              key={project.id} 
+              project={project}
+              onEdit={handleEditProject}
+              onDelete={handleDeleteProject}
+              onViewTasks={onViewTasks}
+            />
           ))}
         </div>
       )}
@@ -97,15 +132,32 @@ export default function ProjectsManager() {
         onClose={() => setIsCreateModalOpen(false)}
         onProjectCreated={handleProjectCreated}
       />
+
+      <EditProjectModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onProjectUpdated={handleProjectUpdated}
+        project={selectedProject}
+      />
+
+      <DeleteProjectModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onProjectDeleted={handleProjectDeleted}
+        project={selectedProject}
+      />
     </div>
   );
 }
 
 interface ProjectCardProps {
   project: Project;
+  onEdit: (project: Project) => void;
+  onDelete: (project: Project) => void;
+  onViewTasks?: (projectId: number) => void;
 }
 
-function ProjectCard({ project }: ProjectCardProps) {
+function ProjectCard({ project, onEdit, onDelete, onViewTasks }: ProjectCardProps) {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pl-PL');
   };
@@ -116,12 +168,14 @@ function ProjectCard({ project }: ProjectCardProps) {
         <h3 className="text-xl font-semibold text-white">{project.name}</h3>
         <div className="flex space-x-2">
           <button
+            onClick={() => onEdit(project)}
             className="text-gray-400 hover:text-blue-400 transition-colors"
             title="Edit project"
           >
             ✏️
           </button>
           <button
+            onClick={() => onDelete(project)}
             className="text-gray-400 hover:text-red-400 transition-colors"
             title="Delete project"
           >
@@ -153,10 +207,16 @@ function ProjectCard({ project }: ProjectCardProps) {
 
       <div className="mt-6 pt-4 border-t border-gray-700">
         <div className="flex space-x-2">
-          <button className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm">
+          <button 
+            onClick={() => onViewTasks?.(project.id)}
+            className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+          >
             View Tasks
           </button>
-          <button className="flex-1 px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors text-sm">
+          <button 
+            onClick={() => alert('Workflow configuration coming soon!')}
+            className="flex-1 px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors text-sm"
+          >
             Configure Workflow
           </button>
         </div>

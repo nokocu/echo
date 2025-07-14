@@ -79,7 +79,7 @@ export default function Dashboard() {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-white mb-2">project overview</h2>
+            <h2 className="text-2xl font-bold text-white mb-2">overview</h2>
             <p className="text-gray-400">manage tasks and track progress</p>
           </div>
           <button

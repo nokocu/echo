@@ -355,6 +355,104 @@ public class TasksController : ControllerBase
         }
     }
 
+    [HttpPut("projects/{id}")]
+    public async Task<ActionResult<ProjectDto>> UpdateProject(int id, [FromBody] UpdateProjectRequest request)
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            var project = await _context.Projects.FirstOrDefaultAsync(p => p.Id == id && p.OwnerId == userId);
+            if (project == null)
+            {
+                return NotFound("Project not found");
+            }
+
+            _logger.LogInformation("UpdateProject {ProjectId} called by user {UserId}", id, userId);
+
+            project.Name = request.Name;
+            project.Description = request.Description;
+            project.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            var projectDto = new ProjectDto
+            {
+                Id = project.Id,
+                Name = project.Name,
+                Description = project.Description,
+                OwnerName = User.Identity?.Name ?? "Unknown",
+                CreatedAt = project.CreatedAt.ToString("O"),
+                UpdatedAt = project.UpdatedAt.ToString("O")
+            };
+
+            return Ok(projectDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating project {ProjectId}", id);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    [HttpDelete("projects/{id}")]
+    public async Task<IActionResult> DeleteProject(int id)
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            var project = await _context.Projects
+                .Include(p => p.Tasks)
+                .Include(p => p.WorkflowStates)
+                .ThenInclude(ws => ws.FromTransitions)
+                .Include(p => p.WorkflowStates)
+                .ThenInclude(ws => ws.ToTransitions)
+                .FirstOrDefaultAsync(p => p.Id == id && p.OwnerId == userId);
+
+            if (project == null)
+            {
+                return NotFound("Project not found");
+            }
+
+            _logger.LogInformation("DeleteProject {ProjectId} called by user {UserId}", id, userId);
+
+            // check if project has tasks
+            if (project.Tasks.Any())
+            {
+                return BadRequest("Cannot delete project with existing tasks. Please delete or move all tasks first.");
+            }
+
+            // delete workflow transitions first (foreign key constraints)
+            var transitions = project.WorkflowStates.SelectMany(ws => ws.FromTransitions.Concat(ws.ToTransitions)).Distinct();
+            _context.WorkflowTransitions.RemoveRange(transitions);
+
+            // delete workflow states
+            _context.WorkflowStates.RemoveRange(project.WorkflowStates);
+
+            // delete project
+            _context.Projects.Remove(project);
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Project {ProjectId} deleted successfully", id);
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting project {ProjectId}", id);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
     private async Task CreateDefaultWorkflowStatesAsync(int projectId)
     {
         var defaultStates = new[]
@@ -486,6 +584,12 @@ public class CreateProjectRequest
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public DateTime? StartDate { get; set; }
+}
+
+public class UpdateProjectRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
 }
 
 public class ProjectDto

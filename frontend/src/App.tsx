@@ -14,6 +14,12 @@ function AuthenticatedApp() {
   const { isAuthenticated } = useAuth();
   const [showRegister, setShowRegister] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+
+  const handleViewProjectTasks = (projectId: number) => {
+    setSelectedProjectId(projectId);
+    setActiveTab('tasks');
+  };
 
   const handleAuthSuccess = () => {
     window.location.reload(); // simple way to refresh the app state
@@ -24,9 +30,9 @@ function AuthenticatedApp() {
       case 'dashboard':
         return <Dashboard />;
       case 'tasks':
-        return <KanbanBoard />;
+        return <KanbanBoard initialProjectId={selectedProjectId} />;
       case 'projects':
-        return <ProjectsManager />;
+        return <ProjectsManager onViewTasks={handleViewProjectTasks} />;
       case 'workflow':
         return (
           <div className="p-6">

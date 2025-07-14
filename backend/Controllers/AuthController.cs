@@ -143,7 +143,7 @@ public class AuthController : ControllerBase
             new WorkflowState
             {
                 Name = "Todo",
-                Color = "#6B7280",
+                Color = "#gray",
                 Type = WorkflowStateType.Start,
                 Order = 1,
                 ProjectId = project.Id
@@ -151,7 +151,7 @@ public class AuthController : ControllerBase
             new WorkflowState
             {
                 Name = "In Progress",
-                Color = "#3B82F6",
+                Color = "#blue",
                 Type = WorkflowStateType.InProgress,
                 Order = 2,
                 ProjectId = project.Id
@@ -159,7 +159,7 @@ public class AuthController : ControllerBase
             new WorkflowState
             {
                 Name = "Review",
-                Color = "#F59E0B",
+                Color = "#yellow",
                 Type = WorkflowStateType.Review,
                 Order = 3,
                 ProjectId = project.Id
@@ -167,7 +167,7 @@ public class AuthController : ControllerBase
             new WorkflowState
             {
                 Name = "Done",
-                Color = "#10B981",
+                Color = "#green",
                 Type = WorkflowStateType.Completed,
                 Order = 4,
                 ProjectId = project.Id

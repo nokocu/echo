@@ -33,6 +33,11 @@ export interface CreateProjectRequest {
   startDate?: string;
 }
 
+export interface UpdateProjectRequest {
+  name: string;
+  description: string;
+}
+
 export interface CreateTaskRequest {
   title: string;
   description: string;
@@ -83,5 +88,14 @@ export const tasksService = {
   async createProject(project: CreateProjectRequest): Promise<Project> {
     const response = await api.post('/tasks/projects', project);
     return response.data;
+  },
+
+  async updateProject(id: number, project: UpdateProjectRequest): Promise<Project> {
+    const response = await api.put(`/tasks/projects/${id}`, project);
+    return response.data;
+  },
+
+  async deleteProject(id: number): Promise<void> {
+    await api.delete(`/tasks/projects/${id}`);
   },
 };
