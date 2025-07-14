@@ -9,8 +9,14 @@ frontend/.vite/
 # Build output
 backend/bin/
 backend/obj/
+
+# SQLite database files
 *.db
+*.db-shm
+*.db-wal
 *.sqlite
+*.sqlite-shm
+*.sqlite-wal
 
 # User secrets and sensitive files
 backend/appsettings.Development.json

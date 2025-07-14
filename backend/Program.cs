@@ -56,7 +56,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins("http://localhost:5173") // vite default port
+        policy.WithOrigins("http://localhost:5173", "http://localhost:3000") // vite default port + backup
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
