@@ -15,8 +15,15 @@ public class WorkflowTransition
     
     public bool RequiresApproval { get; set; } = false;
     
+    public bool IsAutomatic { get; set; } = false;
+    
+    public int Order { get; set; } = 0;
+    
     [MaxLength(500)]
     public string? Conditions { get; set; }
+    
+    [MaxLength(1000)]
+    public string? ConditionExpression { get; set; }
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     

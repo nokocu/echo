@@ -26,13 +26,13 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated }: Crea
     description: '',
     priority: 'Medium',
     dueDate: '',
-    projectId: 0, // will be set when projects load
+    projectId: 0, // Will be set when projects load
   });
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // load projects when modal opens
+  // Load projects when modal opens
   useEffect(() => {
     if (isOpen) {
       loadProjects();
@@ -44,7 +44,7 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated }: Crea
       const projectsData = await tasksService.getProjects();
       setProjects(projectsData);
       
-      // set the first project as default if none selected
+      // Set the first project as default if none selected
       if (projectsData.length > 0 && form.projectId === 0) {
         setForm(prev => ({ ...prev, projectId: projectsData[0].id }));
       }

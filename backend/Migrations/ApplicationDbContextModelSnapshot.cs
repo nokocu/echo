@@ -313,6 +313,47 @@ namespace backend.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("backend.Models.WorkflowAuditEntry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("FromStateId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SystemInfo")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TaskId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ToStateId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("TransitionedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FromStateId");
+
+                    b.HasIndex("TaskId");
+
+                    b.HasIndex("ToStateId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("WorkflowAuditEntries");
+                });
+
             modelBuilder.Entity("backend.Models.WorkflowState", b =>
                 {
                     b.Property<int>("Id")
@@ -362,6 +403,10 @@ namespace backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("ConditionExpression")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Conditions")
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
@@ -377,10 +422,16 @@ namespace backend.Migrations
                     b.Property<int>("FromStateId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("IsAutomatic")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("RequiresApproval")
                         .HasColumnType("INTEGER");
@@ -483,6 +534,41 @@ namespace backend.Migrations
                     b.Navigation("Project");
 
                     b.Navigation("WorkflowState");
+                });
+
+            modelBuilder.Entity("backend.Models.WorkflowAuditEntry", b =>
+                {
+                    b.HasOne("backend.Models.WorkflowState", "FromState")
+                        .WithMany()
+                        .HasForeignKey("FromStateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("backend.Models.TaskItem", "Task")
+                        .WithMany()
+                        .HasForeignKey("TaskId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("backend.Models.WorkflowState", "ToState")
+                        .WithMany()
+                        .HasForeignKey("ToStateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("backend.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("FromState");
+
+                    b.Navigation("Task");
+
+                    b.Navigation("ToState");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("backend.Models.WorkflowState", b =>

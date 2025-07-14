@@ -50,7 +50,7 @@ public class AuthController : ControllerBase
         if (!result.Succeeded)
             return BadRequest(result.Errors);
 
-        // create default project and workflow states for new user
+        // Create default project and workflow states for new user
         await CreateDefaultProjectForUser(user.Id);
 
         var token = await GenerateJwtToken(user);
@@ -126,7 +126,7 @@ public class AuthController : ControllerBase
 
     private async Task CreateDefaultProjectForUser(string userId)
     {
-        // create default project
+        // Create default project
         var project = new Project
         {
             Name = "My First Project",
@@ -137,7 +137,7 @@ public class AuthController : ControllerBase
         _context.Projects.Add(project);
         await _context.SaveChangesAsync();
 
-        // create default workflow states
+        // Create default workflow states
         var workflowStates = new[]
         {
             new WorkflowState

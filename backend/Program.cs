@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using backend.Data;
 using backend.Models;
+using backend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,6 +51,9 @@ builder.Services.AddAuthentication(options =>
 
 // add controllers
 builder.Services.AddControllers();
+
+// register workflow engine service
+builder.Services.AddScoped<WorkflowEngine>();
 
 // add cors
 builder.Services.AddCors(options =>

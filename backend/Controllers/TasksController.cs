@@ -13,10 +13,12 @@ namespace backend.Controllers;
 public class TasksController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly ILogger<TasksController> _logger;
 
-    public TasksController(ApplicationDbContext context)
+    public TasksController(ApplicationDbContext context, ILogger<TasksController> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -221,6 +223,88 @@ public class TasksController : ControllerBase
 
         return NoContent();
     }
+
+    [HttpGet("projects")]
+    public async Task<ActionResult<IEnumerable<ProjectDto>>> GetProjects()
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                _logger.LogWarning("GetProjects: User ID not found in claims");
+                return Unauthorized();
+            }
+
+            _logger.LogInformation("GetProjects called by user {UserId}", userId);
+
+            var projects = await _context.Projects
+                .Where(p => p.OwnerId == userId)
+                .Select(p => new ProjectDto
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description
+                })
+                .ToListAsync();
+
+            if (!projects.Any())
+            {
+                _logger.LogInformation("No projects found for user {UserId}, creating default project", userId);
+                
+                // Create default project for user
+                var defaultProject = new Project
+                {
+                    Name = "My Default Project",
+                    Description = "Default project created automatically",
+                    OwnerId = userId,
+                    StartDate = DateTime.UtcNow,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                _context.Projects.Add(defaultProject);
+                await _context.SaveChangesAsync();
+
+                // Create default workflow states for the project
+                await CreateDefaultWorkflowStatesAsync(defaultProject.Id);
+
+                projects = new List<ProjectDto>
+                {
+                    new ProjectDto
+                    {
+                        Id = defaultProject.Id,
+                        Name = defaultProject.Name,
+                        Description = defaultProject.Description
+                    }
+                };
+
+                _logger.LogInformation("Created default project {ProjectId} for user {UserId}", defaultProject.Id, userId);
+            }
+
+            _logger.LogInformation("Returning {Count} projects for user {UserId}", projects.Count, userId);
+            return Ok(projects);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting projects for user");
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    private async Task CreateDefaultWorkflowStatesAsync(int projectId)
+    {
+        var defaultStates = new[]
+        {
+            new WorkflowState { Name = "Todo", Type = WorkflowStateType.Start, Order = 1, ProjectId = projectId, Color = "#gray", IsActive = true },
+            new WorkflowState { Name = "In Progress", Type = WorkflowStateType.InProgress, Order = 2, ProjectId = projectId, Color = "#blue", IsActive = true },
+            new WorkflowState { Name = "Review", Type = WorkflowStateType.Review, Order = 3, ProjectId = projectId, Color = "#yellow", IsActive = true },
+            new WorkflowState { Name = "Done", Type = WorkflowStateType.Completed, Order = 4, ProjectId = projectId, Color = "#green", IsActive = true }
+        };
+
+        _context.WorkflowStates.AddRange(defaultStates);
+        await _context.SaveChangesAsync();
+    }
 }
 
 public class TaskResponse
@@ -260,4 +344,11 @@ public class UpdateTaskRequest
     public DateTime? DueDate { get; set; }
     public string? AssigneeId { get; set; }
     public int? WorkflowStateId { get; set; }
+}
+
+public class ProjectDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
 }

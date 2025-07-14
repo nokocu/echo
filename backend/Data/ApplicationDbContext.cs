@@ -14,6 +14,7 @@ public class ApplicationDbContext : IdentityDbContext<User>
     public DbSet<TaskItem> Tasks { get; set; }
     public DbSet<WorkflowState> WorkflowStates { get; set; }
     public DbSet<WorkflowTransition> WorkflowTransitions { get; set; }
+    public DbSet<WorkflowAuditEntry> WorkflowAuditEntries { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -61,6 +62,31 @@ public class ApplicationDbContext : IdentityDbContext<User>
             .WithMany(w => w.ToTransitions)
             .HasForeignKey(wt => wt.ToStateId)
             .OnDelete(DeleteBehavior.NoAction);
+
+        // workflow audit entry relationships
+        builder.Entity<WorkflowAuditEntry>()
+            .HasOne(wa => wa.Task)
+            .WithMany()
+            .HasForeignKey(wa => wa.TaskId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<WorkflowAuditEntry>()
+            .HasOne(wa => wa.FromState)
+            .WithMany()
+            .HasForeignKey(wa => wa.FromStateId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<WorkflowAuditEntry>()
+            .HasOne(wa => wa.ToState)
+            .WithMany()
+            .HasForeignKey(wa => wa.ToStateId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<WorkflowAuditEntry>()
+            .HasOne(wa => wa.User)
+            .WithMany()
+            .HasForeignKey(wa => wa.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // seed default workflow states
         // SeedDefaultWorkflowStates(builder);
