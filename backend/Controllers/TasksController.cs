@@ -252,46 +252,6 @@ public class TasksController : ControllerBase
                 })
                 .ToListAsync();
 
-            if (!projects.Any())
-            {
-                _logger.LogInformation("No projects found for user {UserId}, creating default project", userId);
-                
-                // Create default project for user
-                var defaultProject = new Project
-                {
-                    Name = "My Default Project",
-                    Description = "Default project created automatically",
-                    OwnerId = userId,
-                    StartDate = DateTime.UtcNow,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
-
-                _context.Projects.Add(defaultProject);
-                await _context.SaveChangesAsync();
-
-                // Create default workflow states for the project
-                await CreateDefaultWorkflowStatesAsync(defaultProject.Id);
-
-                // Create default workflow transitions for the project  
-                await CreateDefaultWorkflowTransitionsAsync(defaultProject.Id);
-
-                projects = new List<ProjectDto>
-                {
-                    new ProjectDto
-                    {
-                        Id = defaultProject.Id,
-                        Name = defaultProject.Name,
-                        Description = defaultProject.Description,
-                        OwnerName = User.Identity?.Name ?? "Unknown",
-                        CreatedAt = defaultProject.CreatedAt.ToString("O"),
-                        UpdatedAt = defaultProject.UpdatedAt.ToString("O")
-                    }
-                };
-
-                _logger.LogInformation("Created default project {ProjectId} for user {UserId}", defaultProject.Id, userId);
-            }
-
             _logger.LogInformation("Returning {Count} projects for user {UserId}", projects.Count, userId);
             return Ok(projects);
         }
