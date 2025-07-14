@@ -59,4 +59,9 @@ export const tasksService = {
   async deleteTask(id: number): Promise<void> {
     await api.delete(`/tasks/${id}`);
   },
+
+  async getProjects(): Promise<any[]> {
+    const response = await api.get('/tasks/projects');
+    return response.data;
+  },
 };
