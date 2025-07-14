@@ -176,6 +176,62 @@ public class AuthController : ControllerBase
 
         _context.WorkflowStates.AddRange(workflowStates);
         await _context.SaveChangesAsync();
+
+        // create default workflow transitions
+        var transitions = new[]
+        {
+            new WorkflowTransition
+            {
+                Name = "Start Progress",
+                FromStateId = workflowStates[0].Id, // TODO
+                ToStateId = workflowStates[1].Id,   // IN_PROGRESS
+                Order = 1,
+                IsAutomatic = false
+            },
+            new WorkflowTransition
+            {
+                Name = "Complete Task",
+                FromStateId = workflowStates[1].Id, // IN_PROGRESS
+                ToStateId = workflowStates[2].Id,   // COMPLETED
+                Order = 2,
+                IsAutomatic = false
+            },
+            new WorkflowTransition
+            {
+                Name = "Block Task",
+                FromStateId = workflowStates[0].Id, // TODO
+                ToStateId = workflowStates[3].Id,   // BLOCKED
+                Order = 3,
+                IsAutomatic = false
+            },
+            new WorkflowTransition
+            {
+                Name = "Block In Progress",
+                FromStateId = workflowStates[1].Id, // IN_PROGRESS
+                ToStateId = workflowStates[3].Id,   // BLOCKED
+                Order = 4,
+                IsAutomatic = false
+            },
+            new WorkflowTransition
+            {
+                Name = "Unblock to TODO",
+                FromStateId = workflowStates[3].Id, // BLOCKED
+                ToStateId = workflowStates[0].Id,   // TODO
+                Order = 5,
+                IsAutomatic = false
+            },
+            new WorkflowTransition
+            {
+                Name = "Reopen Task",
+                FromStateId = workflowStates[2].Id, // COMPLETED
+                ToStateId = workflowStates[0].Id,   // TODO
+                Order = 6,
+                IsAutomatic = false
+            }
+        };
+
+        _context.WorkflowTransitions.AddRange(transitions);
+        await _context.SaveChangesAsync();
     }
 }
 

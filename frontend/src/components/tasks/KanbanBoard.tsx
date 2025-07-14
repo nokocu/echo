@@ -56,8 +56,8 @@ export default function KanbanBoard() {
   const handleStatusChange = async (taskId: number, newStateId: number) => {
     try {
       await workflowService.transitionTask(taskId, { 
-        toStateId: newStateId,
-        comment: `Changed via Kanban board`
+        ToStateId: newStateId,
+        Comment: `changed via kanban board`
       });
       
       // refresh
@@ -226,7 +226,7 @@ function TaskCard({ task, workflowStates, onStatusChange, onShowHistory }: TaskC
       <div className="flex items-center justify-between mb-3">
         <TaskStatusBadge
           currentState={currentState}
-          availableStates={workflowStates}
+          projectId={task.projectId}
           onStateChange={(newStateId) => onStatusChange(task.id, newStateId)}
         />
         

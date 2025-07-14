@@ -32,8 +32,8 @@ export interface WorkflowAuditEntry {
 }
 
 export interface TransitionRequest {
-  toStateId: number;
-  comment?: string;
+  ToStateId: number;
+  Comment?: string;
 }
 
 export const workflowService = {
