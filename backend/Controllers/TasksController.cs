@@ -239,12 +239,16 @@ public class TasksController : ControllerBase
             _logger.LogInformation("GetProjects called by user {UserId}", userId);
 
             var projects = await _context.Projects
+                .Include(p => p.Owner)
                 .Where(p => p.OwnerId == userId)
                 .Select(p => new ProjectDto
                 {
                     Id = p.Id,
                     Name = p.Name,
-                    Description = p.Description
+                    Description = p.Description,
+                    OwnerName = p.Owner.Email ?? "Unknown",
+                    CreatedAt = p.CreatedAt.ToString("O"),
+                    UpdatedAt = p.UpdatedAt.ToString("O")
                 })
                 .ToListAsync();
 
@@ -269,13 +273,19 @@ public class TasksController : ControllerBase
                 // Create default workflow states for the project
                 await CreateDefaultWorkflowStatesAsync(defaultProject.Id);
 
+                // Create default workflow transitions for the project  
+                await CreateDefaultWorkflowTransitionsAsync(defaultProject.Id);
+
                 projects = new List<ProjectDto>
                 {
                     new ProjectDto
                     {
                         Id = defaultProject.Id,
                         Name = defaultProject.Name,
-                        Description = defaultProject.Description
+                        Description = defaultProject.Description,
+                        OwnerName = User.Identity?.Name ?? "Unknown",
+                        CreatedAt = defaultProject.CreatedAt.ToString("O"),
+                        UpdatedAt = defaultProject.UpdatedAt.ToString("O")
                     }
                 };
 
@@ -292,6 +302,59 @@ public class TasksController : ControllerBase
         }
     }
 
+    [HttpPost("projects")]
+    public async Task<ActionResult<ProjectDto>> CreateProject([FromBody] CreateProjectRequest request)
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            _logger.LogInformation("CreateProject called by user {UserId} with name {ProjectName}", userId, request.Name);
+
+            var project = new Project
+            {
+                Name = request.Name,
+                Description = request.Description,
+                OwnerId = userId,
+                StartDate = request.StartDate ?? DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _context.Projects.Add(project);
+            await _context.SaveChangesAsync();
+
+            // Create default workflow states for the project
+            await CreateDefaultWorkflowStatesAsync(project.Id);
+
+            // Create default workflow transitions for the project
+            await CreateDefaultWorkflowTransitionsAsync(project.Id);
+
+            _logger.LogInformation("Created project {ProjectId} for user {UserId}", project.Id, userId);
+
+            var projectDto = new ProjectDto
+            {
+                Id = project.Id,
+                Name = project.Name,
+                Description = project.Description,
+                OwnerName = User.Identity?.Name ?? "Unknown",
+                CreatedAt = project.CreatedAt.ToString("O"),
+                UpdatedAt = project.UpdatedAt.ToString("O")
+            };
+
+            return CreatedAtAction(nameof(GetProjects), new { id = project.Id }, projectDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating project");
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
     private async Task CreateDefaultWorkflowStatesAsync(int projectId)
     {
         var defaultStates = new[]
@@ -304,6 +367,78 @@ public class TasksController : ControllerBase
 
         _context.WorkflowStates.AddRange(defaultStates);
         await _context.SaveChangesAsync();
+    }
+
+    private async Task CreateDefaultWorkflowTransitionsAsync(int projectId)
+    {
+        // Get the workflow states we just created
+        var workflowStates = await _context.WorkflowStates
+            .Where(ws => ws.ProjectId == projectId)
+            .OrderBy(ws => ws.Order)
+            .ToListAsync();
+
+        if (workflowStates.Count >= 4)
+        {
+            var todoState = workflowStates[0];      // Start
+            var inProgressState = workflowStates[1]; // InProgress  
+            var reviewState = workflowStates[2];     // Review
+            var doneState = workflowStates[3];       // Completed
+
+            var transitions = new[]
+            {
+                new WorkflowTransition
+                {
+                    Name = "Start Progress",
+                    FromStateId = todoState.Id,
+                    ToStateId = inProgressState.Id,
+                    Order = 1,
+                    IsAutomatic = false
+                },
+                new WorkflowTransition
+                {
+                    Name = "Send for Review",
+                    FromStateId = inProgressState.Id,
+                    ToStateId = reviewState.Id,
+                    Order = 2,
+                    IsAutomatic = false
+                },
+                new WorkflowTransition
+                {
+                    Name = "Complete Task",
+                    FromStateId = reviewState.Id,
+                    ToStateId = doneState.Id,
+                    Order = 3,
+                    IsAutomatic = false
+                },
+                new WorkflowTransition
+                {
+                    Name = "Back to Todo",
+                    FromStateId = reviewState.Id,
+                    ToStateId = todoState.Id,
+                    Order = 4,
+                    IsAutomatic = false
+                },
+                new WorkflowTransition
+                {
+                    Name = "Back to Progress",
+                    FromStateId = reviewState.Id,
+                    ToStateId = inProgressState.Id,
+                    Order = 5,
+                    IsAutomatic = false
+                },
+                new WorkflowTransition
+                {
+                    Name = "Reopen Task",
+                    FromStateId = doneState.Id,
+                    ToStateId = todoState.Id,
+                    Order = 6,
+                    IsAutomatic = false
+                }
+            };
+
+            _context.WorkflowTransitions.AddRange(transitions);
+            await _context.SaveChangesAsync();
+        }
     }
 }
 
@@ -346,9 +481,19 @@ public class UpdateTaskRequest
     public int? WorkflowStateId { get; set; }
 }
 
+public class CreateProjectRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public DateTime? StartDate { get; set; }
+}
+
 public class ProjectDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    public string OwnerName { get; set; } = string.Empty;
+    public string CreatedAt { get; set; } = string.Empty;
+    public string UpdatedAt { get; set; } = string.Empty;
 }

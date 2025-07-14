@@ -18,6 +18,21 @@ export interface Task {
   workflowStateColor: string;
 }
 
+export interface Project {
+  id: number;
+  name: string;
+  description: string;
+  ownerName: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateProjectRequest {
+  name: string;
+  description: string;
+  startDate?: string;
+}
+
 export interface CreateTaskRequest {
   title: string;
   description: string;
@@ -60,8 +75,13 @@ export const tasksService = {
     await api.delete(`/tasks/${id}`);
   },
 
-  async getProjects(): Promise<any[]> {
+  async getProjects(): Promise<Project[]> {
     const response = await api.get('/tasks/projects');
+    return response.data;
+  },
+
+  async createProject(project: CreateProjectRequest): Promise<Project> {
+    const response = await api.post('/tasks/projects', project);
     return response.data;
   },
 };

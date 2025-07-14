@@ -20,10 +20,9 @@ export interface Project {
   id: number;
   name: string;
   description: string;
+  ownerName: string;
   createdAt: string;
   updatedAt: string;
-  ownerId: string;
-  ownerName: string;
 }
 
 export interface User {

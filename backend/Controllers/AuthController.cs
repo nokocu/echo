@@ -142,7 +142,7 @@ public class AuthController : ControllerBase
         {
             new WorkflowState
             {
-                Name = "TODO",
+                Name = "Todo",
                 Color = "#6B7280",
                 Type = WorkflowStateType.Start,
                 Order = 1,
@@ -150,7 +150,7 @@ public class AuthController : ControllerBase
             },
             new WorkflowState
             {
-                Name = "IN_PROGRESS",
+                Name = "In Progress",
                 Color = "#3B82F6",
                 Type = WorkflowStateType.InProgress,
                 Order = 2,
@@ -158,17 +158,17 @@ public class AuthController : ControllerBase
             },
             new WorkflowState
             {
-                Name = "COMPLETED",
-                Color = "#10B981",
-                Type = WorkflowStateType.Completed,
+                Name = "Review",
+                Color = "#F59E0B",
+                Type = WorkflowStateType.Review,
                 Order = 3,
                 ProjectId = project.Id
             },
             new WorkflowState
             {
-                Name = "BLOCKED",
-                Color = "#EF4444",
-                Type = WorkflowStateType.Review,
+                Name = "Done",
+                Color = "#10B981",
+                Type = WorkflowStateType.Completed,
                 Order = 4,
                 ProjectId = project.Id
             }
@@ -183,48 +183,48 @@ public class AuthController : ControllerBase
             new WorkflowTransition
             {
                 Name = "Start Progress",
-                FromStateId = workflowStates[0].Id, // TODO
-                ToStateId = workflowStates[1].Id,   // IN_PROGRESS
+                FromStateId = workflowStates[0].Id, // Todo
+                ToStateId = workflowStates[1].Id,   // In Progress
                 Order = 1,
                 IsAutomatic = false
             },
             new WorkflowTransition
             {
-                Name = "Complete Task",
-                FromStateId = workflowStates[1].Id, // IN_PROGRESS
-                ToStateId = workflowStates[2].Id,   // COMPLETED
+                Name = "Send for Review",
+                FromStateId = workflowStates[1].Id, // In Progress
+                ToStateId = workflowStates[2].Id,   // Review
                 Order = 2,
                 IsAutomatic = false
             },
             new WorkflowTransition
             {
-                Name = "Block Task",
-                FromStateId = workflowStates[0].Id, // TODO
-                ToStateId = workflowStates[3].Id,   // BLOCKED
+                Name = "Complete Task",
+                FromStateId = workflowStates[2].Id, // Review
+                ToStateId = workflowStates[3].Id,   // Done
                 Order = 3,
                 IsAutomatic = false
             },
             new WorkflowTransition
             {
-                Name = "Block In Progress",
-                FromStateId = workflowStates[1].Id, // IN_PROGRESS
-                ToStateId = workflowStates[3].Id,   // BLOCKED
+                Name = "Back to Todo",
+                FromStateId = workflowStates[2].Id, // Review
+                ToStateId = workflowStates[0].Id,   // Todo
                 Order = 4,
                 IsAutomatic = false
             },
             new WorkflowTransition
             {
-                Name = "Unblock to TODO",
-                FromStateId = workflowStates[3].Id, // BLOCKED
-                ToStateId = workflowStates[0].Id,   // TODO
+                Name = "Back to Progress",
+                FromStateId = workflowStates[2].Id, // Review
+                ToStateId = workflowStates[1].Id,   // In Progress
                 Order = 5,
                 IsAutomatic = false
             },
             new WorkflowTransition
             {
                 Name = "Reopen Task",
-                FromStateId = workflowStates[2].Id, // COMPLETED
-                ToStateId = workflowStates[0].Id,   // TODO
+                FromStateId = workflowStates[3].Id, // Done
+                ToStateId = workflowStates[0].Id,   // Todo
                 Order = 6,
                 IsAutomatic = false
             }

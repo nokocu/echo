@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { tasksService } from '../../services/tasks';
 import type { Project } from '../../types/api';
+import CreateProjectModal from './CreateProjectModal';
 
 export default function ProjectsManager() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const fetchProjects = async () => {
     try {
@@ -25,8 +27,11 @@ export default function ProjectsManager() {
   }, []);
 
   const handleCreateProject = () => {
-    // TODO: implement project creation modal
-    alert('Project creation coming soon!');
+    setIsCreateModalOpen(true);
+  };
+
+  const handleProjectCreated = () => {
+    fetchProjects(); // refresh the projects list
   };
 
   if (loading) {
@@ -86,6 +91,12 @@ export default function ProjectsManager() {
           ))}
         </div>
       )}
+
+      <CreateProjectModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onProjectCreated={handleProjectCreated}
+      />
     </div>
   );
 }
