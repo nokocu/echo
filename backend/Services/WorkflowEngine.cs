@@ -182,6 +182,9 @@ public class WorkflowEngine : IWorkflowEngine
                 };
             }
 
+            // capture original state before update
+            var originalStateId = context.Task.WorkflowStateId;
+
             // update task state
             context.Task.WorkflowStateId = targetStateId;
             context.Task.UpdatedAt = DateTime.UtcNow;
@@ -200,7 +203,7 @@ public class WorkflowEngine : IWorkflowEngine
             var auditEntry = new WorkflowAuditEntry
             {
                 TaskId = taskId,
-                FromStateId = context.Task.WorkflowStateId,
+                FromStateId = originalStateId,  // use original state, not current
                 ToStateId = targetStateId,
                 UserId = userId,
                 Comment = comment,
