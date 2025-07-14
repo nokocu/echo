@@ -63,53 +63,10 @@ public class ApplicationDbContext : IdentityDbContext<User>
             .OnDelete(DeleteBehavior.NoAction);
 
         // seed default workflow states
-        SeedDefaultWorkflowStates(builder);
+        // SeedDefaultWorkflowStates(builder);
     }
 
     private static void SeedDefaultWorkflowStates(ModelBuilder builder)
     {
-        // these will be template states that projects can copy
-        builder.Entity<WorkflowState>().HasData(
-            new WorkflowState
-            {
-                Id = -1,
-                Name = "Todo",
-                Description = "Tasks that are ready to be worked on",
-                Type = WorkflowStateType.Start,
-                Order = 1,
-                Color = "#6B7280",
-                ProjectId = -1 // template project
-            },
-            new WorkflowState
-            {
-                Id = -2,
-                Name = "In Progress",
-                Description = "Tasks currently being worked on",
-                Type = WorkflowStateType.InProgress,
-                Order = 2,
-                Color = "#3B82F6",
-                ProjectId = -1
-            },
-            new WorkflowState
-            {
-                Id = -3,
-                Name = "Review",
-                Description = "Tasks waiting for review or approval",
-                Type = WorkflowStateType.Review,
-                Order = 3,
-                Color = "#F59E0B",
-                ProjectId = -1
-            },
-            new WorkflowState
-            {
-                Id = -4,
-                Name = "Done",
-                Description = "Completed tasks",
-                Type = WorkflowStateType.Completed,
-                Order = 4,
-                Color = "#10B981",
-                ProjectId = -1
-            }
-        );
     }
 }
