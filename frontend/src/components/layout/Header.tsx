@@ -1,9 +1,13 @@
+import { useAuth } from '../../context/AuthContext';
+
 interface HeaderProps {
   title: string;
   subtitle: string;
 }
 
 export default function Header({ title, subtitle }: HeaderProps) {
+  const { user, logout } = useAuth();
+
   return (
     <header className="bg-gray-900 border-b border-gray-800">
       <div className="max-w-7xl mx-auto px-6 py-4">
@@ -13,8 +17,22 @@ export default function Header({ title, subtitle }: HeaderProps) {
             <p className="text-sm text-gray-400 mt-1">{subtitle}</p>
           </div>
           <div className="flex items-center space-x-4">
-            <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">
-              <span className="text-sm font-medium text-gray-300">U</span>
+            <div className="text-right">
+              <p className="text-sm font-medium text-white">
+                {user?.firstName} {user?.lastName}
+              </p>
+              <p className="text-xs text-gray-400">{user?.email}</p>
+            </div>
+            <div className="relative">
+              <button
+                onClick={logout}
+                className="w-8 h-8 bg-gray-700 hover:bg-gray-600 rounded-full flex items-center justify-center transition-colors"
+                title="logout"
+              >
+                <span className="text-sm font-medium text-gray-300">
+                  {user?.firstName?.[0]?.toUpperCase()}
+                </span>
+              </button>
             </div>
           </div>
         </div>
