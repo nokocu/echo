@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { tasksService } from '../../services/tasks';
 import type { TaskItem, Project } from '../../types/api';
+import CreateTaskModal from '../tasks/CreateTaskModal';
 
 const statusColors = {
   'TODO': 'bg-gray-600',
@@ -10,10 +11,10 @@ const statusColors = {
 };
 
 const priorityColors = {
-  'LOW': 'text-green-400',
-  'MEDIUM': 'text-yellow-400',
-  'HIGH': 'text-red-400',
-  'CRITICAL': 'text-red-600',
+  'Low': 'text-green-400',
+  'Medium': 'text-yellow-400',
+  'High': 'text-red-400',
+  'Critical': 'text-red-600',
 };
 
 export default function Dashboard() {
@@ -21,31 +22,36 @@ export default function Dashboard() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const tasksData = await tasksService.getTasks();
+      setTasks(tasksData);
+      
+      // try to get projects, dont fail if endpoint doesnt exist yet
+      try {
+        const projectsData = await tasksService.getProjects();
+        setProjects(projectsData);
+      } catch (projectError) {
+        console.log('Projects endpoint not available yet');
+        setProjects([]);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const tasksData = await tasksService.getTasks();
-        setTasks(tasksData);
-        
-        // Try to get projects, but don't fail if endpoint doesn't exist yet
-        try {
-          const projectsData = await tasksService.getProjects();
-          setProjects(projectsData);
-        } catch (projectError) {
-          console.log('Projects endpoint not available yet');
-          setProjects([]);
-        }
-      } catch (err: any) {
-        setError(err.message || 'Failed to fetch data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
   }, []);
+
+  const handleTaskCreated = () => {
+    fetchData(); // refresh the tasks list
+  };
 
   if (loading) {
     return (
@@ -71,8 +77,19 @@ export default function Dashboard() {
   return (
     <div className="p-6">
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-white mb-2">project overview</h2>
-        <p className="text-gray-400">manage tasks and track progress</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-2">project overview</h2>
+            <p className="text-gray-400">manage tasks and track progress</p>
+          </div>
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2"
+          >
+            <span>+</span>
+            <span>Create Task</span>
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -143,6 +160,12 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      <CreateTaskModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onTaskCreated={handleTaskCreated}
+      />
     </div>
   );
 }

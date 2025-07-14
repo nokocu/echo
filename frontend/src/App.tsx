@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './components/layout/Layout';
 import Dashboard from './components/dashboard/Dashboard';
+import KanbanBoard from './components/tasks/KanbanBoard';
 import LoginForm from './components/auth/LoginForm';
 import RegisterForm from './components/auth/RegisterForm';
 
@@ -11,9 +12,35 @@ const queryClient = new QueryClient();
 function AuthenticatedApp() {
   const { isAuthenticated } = useAuth();
   const [showRegister, setShowRegister] = useState(false);
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   const handleAuthSuccess = () => {
     window.location.reload(); // simple way to refresh the app state
+  };
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'dashboard':
+        return <Dashboard />;
+      case 'tasks':
+        return <KanbanBoard />;
+      case 'projects':
+        return (
+          <div className="p-6">
+            <h2 className="text-2xl font-bold text-white mb-4">Projects</h2>
+            <p className="text-gray-400">project management</p>
+          </div>
+        );
+      case 'workflow':
+        return (
+          <div className="p-6">
+            <h2 className="text-2xl font-bold text-white mb-4">Workflow Designer</h2>
+            <p className="text-gray-400">bpmn workflow designer</p>
+          </div>
+        );
+      default:
+        return <Dashboard />;
+    }
   };
 
   if (!isAuthenticated) {
@@ -31,8 +58,8 @@ function AuthenticatedApp() {
   }
 
   return (
-    <Layout>
-      <Dashboard />
+    <Layout activeTab={activeTab} onTabChange={setActiveTab}>
+      {renderContent()}
     </Layout>
   );
 }

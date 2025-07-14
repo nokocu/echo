@@ -5,6 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using backend.Models;
+using backend.Data;
 
 namespace backend.Controllers;
 
@@ -15,14 +16,18 @@ public class AuthController : ControllerBase
     private readonly UserManager<User> _userManager;
     private readonly SignInManager<User> _signInManager;
     private readonly IConfiguration _configuration;
+    private readonly ApplicationDbContext _context;
 
     public AuthController(
         UserManager<User> userManager,
         SignInManager<User> signInManager,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        ApplicationDbContext context)
     {
         _userManager = userManager;
         _signInManager = signInManager;
+        _configuration = configuration;
+        _context = context;
         _configuration = configuration;
     }
 
@@ -44,6 +49,9 @@ public class AuthController : ControllerBase
 
         if (!result.Succeeded)
             return BadRequest(result.Errors);
+
+        // create default project and workflow states for new user
+        await CreateDefaultProjectForUser(user.Id);
 
         var token = await GenerateJwtToken(user);
         return Ok(new AuthResponse
@@ -114,6 +122,60 @@ public class AuthController : ControllerBase
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    private async Task CreateDefaultProjectForUser(string userId)
+    {
+        // create default project
+        var project = new Project
+        {
+            Name = "My First Project",
+            Description = "Default project for getting started with task management",
+            OwnerId = userId
+        };
+
+        _context.Projects.Add(project);
+        await _context.SaveChangesAsync();
+
+        // create default workflow states
+        var workflowStates = new[]
+        {
+            new WorkflowState
+            {
+                Name = "TODO",
+                Color = "#6B7280",
+                Type = WorkflowStateType.Start,
+                Order = 1,
+                ProjectId = project.Id
+            },
+            new WorkflowState
+            {
+                Name = "IN_PROGRESS",
+                Color = "#3B82F6",
+                Type = WorkflowStateType.InProgress,
+                Order = 2,
+                ProjectId = project.Id
+            },
+            new WorkflowState
+            {
+                Name = "COMPLETED",
+                Color = "#10B981",
+                Type = WorkflowStateType.Completed,
+                Order = 3,
+                ProjectId = project.Id
+            },
+            new WorkflowState
+            {
+                Name = "BLOCKED",
+                Color = "#EF4444",
+                Type = WorkflowStateType.Review,
+                Order = 4,
+                ProjectId = project.Id
+            }
+        };
+
+        _context.WorkflowStates.AddRange(workflowStates);
+        await _context.SaveChangesAsync();
     }
 }
 
