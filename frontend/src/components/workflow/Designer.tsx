@@ -147,14 +147,36 @@ export default function BpmnWorkflowDesigner({
       setLoading(true);
       setError(null);
       
-      
       // load workflow data from API
       const workflowData = await bpmnService.getWorkflow(workflowId);
       
       setWorkflow(workflowData);
       setWorkflowName(workflowData.name);
       setWorkflowDescription(workflowData.description);
-    
+
+      // import the BPMN XML into the modeler
+      let bpmnXml = workflowData.bpmnXml;
+      
+      // if no BPMN XML exists, create a default empty diagram
+      if (!bpmnXml) {
+        bpmnXml = `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd" id="sample-diagram" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn2:process id="Process_1" isExecutable="false">
+    <bpmn2:startEvent id="StartEvent_1"/>
+  </bpmn2:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds height="36.0" width="36.0" x="412.0" y="240.0"/>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn2:definitions>`;
+      }
+
+      // import the XML into the modeler
+      await activeModeler.importXML(bpmnXml);
+      
       // zoom to fit the diagram
       const canvas = activeModeler.get('canvas') as any;
       canvas.zoom('fit-viewport');
@@ -262,13 +284,15 @@ export default function BpmnWorkflowDesigner({
                 modelerRef.current = null;
               }
             }}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="px-4 py-2 text-white rounded-md transition-colors"
+            style={{ backgroundColor: '#2563eb80' }}
           >
             Retry
           </button>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+            className="px-4 py-2 text-white rounded-md transition-colors"
+            style={{ backgroundColor: '#6b728080' }}
           >
             Back
           </button>
@@ -278,7 +302,7 @@ export default function BpmnWorkflowDesigner({
   }
 
   return (
-    <div className="flex flex-col h-full bg-gray-900 relative" key={`bpmn-designer-${workflowId}`}>
+    <div className="flex flex-col h-full" style={{ backgroundColor: '#030712' }}>
       {/* Loading overlay */}
       {(initializing || loading) && (
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-gray-900 bg-opacity-90">
@@ -289,7 +313,23 @@ export default function BpmnWorkflowDesigner({
           <p className="text-gray-500 text-sm mt-2">This may take a moment to initialize BPMN.js</p>
         </div>
       )}
-      {/* Header */}
+
+      {/* Page Header */}
+      <div className="border-b border-gray-700 p-6 mt-4">
+        <div>
+          <p className="font-mono text-xs/6 font-medium tracking-widest text-gray-600 uppercase dark:text-gray-400">
+            BPMN Workflow Designer
+          </p>
+          <h1 className="mt-2 text-3xl font-medium tracking-tight text-gray-950 dark:text-white">
+            {workflowName || 'Workflow Designer'}
+          </h1>
+          <p className="mt-2 text-gray-400">
+            Design and configure your business process workflow • Drag elements to create process flows
+          </p>
+        </div>
+      </div>
+
+      {/* Workflow Configuration Header */}
       <div className="bg-gray-800 border-b border-gray-700 p-4">
         <div className="flex items-center justify-between">
           <div className="flex-1 mr-4">
@@ -316,28 +356,24 @@ export default function BpmnWorkflowDesigner({
           </div>
           <div className="flex items-center space-x-3">
             {workflow?.isActive && (
-              <span className="px-3 py-1 bg-green-600 text-white text-sm rounded-full">
+              <span className="px-3 py-1 text-white text-sm rounded-full" style={{ backgroundColor: '#16a34a80' }}>
                 Active
               </span>
             )}
-            <button
-              onClick={activateWorkflow}
-              disabled={workflow?.isActive}
-              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {workflow?.isActive ? 'Active' : 'Activate'}
-            </button>
+
             <button
               onClick={saveWorkflow}
               disabled={saving}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+              className="px-4 py-2 text-white rounded-md transition-colors disabled:opacity-50"
+              style={{ backgroundColor: '#2563eb80' }}
             >
               {saving ? 'Saving...' : 'Save'}
             </button>
             {onClose && (
               <button
                 onClick={onClose}
-                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+                className="px-4 py-2 text-white rounded-md transition-colors"
+                style={{ backgroundColor: '#6b728080' }}
               >
                 Close
               </button>
@@ -362,7 +398,7 @@ export default function BpmnWorkflowDesigner({
         </div>
 
         {/* Properties panel */}
-        <div className="w-80 bg-gray-800 border-l border-gray-700 overflow-y-auto">
+        <div className="w-30 bg-gray-800 border-l border-gray-700 overflow-y-auto">
           <div 
             id="properties-panel" 
             key={`properties-panel-${workflowId}`}
