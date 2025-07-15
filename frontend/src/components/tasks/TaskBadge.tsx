@@ -72,7 +72,7 @@ export default function TaskStatusBadge({
     <div className="relative">
       <button
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-white hover:opacity-80 transition-opacity ${getStateColor(currentState.color)}`}
+        className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium text-white hover:opacity-80 transition-opacity ${getStateColor(currentState.color)}`}
         disabled={isLoading}
       >
         {currentState.name}

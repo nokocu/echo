@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { tasksService } from '../../services/tasks';
 import { bpmnService } from '../../services/bpmn';
 import type { Project } from '../../types/api';
-import CreateProjectModal from './CreateProjectModal';
-import EditProjectModal from './EditProjectModal';
-import DeleteProjectModal from './DeleteProjectModal';
-import BpmnWorkflowDesigner from '../workflow/BpmnWorkflowDesigner';
+import CreateProjectModal from './CreateP';
+import EditProjectModal from './EditP';
+import DeleteProjectModal from './DeleteP';
+import BpmnWorkflowDesigner from '../workflow/Designer';
 
 interface ProjectsManagerProps {
   onViewTasks?: (projectId: number) => void;

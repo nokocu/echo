@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './components/layout/Layout';
-import Dashboard from './components/dashboard/Dashboard';
-import KanbanBoard from './components/tasks/KanbanBoard';
-import ProjectsManager from './components/projects/ProjectsManager';
-import AllWorkflowsManager from './components/workflow/AllWorkflowsManager';
-import LoginForm from './components/auth/LoginForm';
-import RegisterForm from './components/auth/RegisterForm';
+import Dashboard from './components/dashboard/DashPage';
+import KanbanBoard from './components/tasks/KanbanPage';
+import ProjectsManager from './components/projects/ProjectsPage';
+import AllWorkflowsManager from './components/workflow/WorkflowPage';
+import LoginForm from './components/auth/LoginPage';
+import RegisterForm from './components/auth/RegisterPage';
 
 const queryClient = new QueryClient();
 

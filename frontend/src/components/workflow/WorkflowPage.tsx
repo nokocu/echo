@@ -3,7 +3,7 @@ import { bpmnService } from '../../services/bpmn';
 import { tasksService } from '../../services/tasks';
 import type { BpmnWorkflow, CreateBpmnWorkflowRequest } from '../../services/bpmn';
 import type { Project } from '../../types/api';
-import BpmnWorkflowDesigner from './BpmnWorkflowDesigner';
+import BpmnWorkflowDesigner from './Designer';
 
 interface WorkflowWithProject extends BpmnWorkflow {
   project?: Project;
