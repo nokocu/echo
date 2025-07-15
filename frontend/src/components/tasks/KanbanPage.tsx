@@ -85,19 +85,20 @@ export default function KanbanBoard({ initialProjectId }: KanbanBoardProps) {
 
   const getStateColor = (color?: string) => {
     switch (color) {
-      case '#gray': return '#4b5563'; // gray-600
-      case '#blue': return '#2563eb'; // blue-600
-      case '#yellow': return '#ca8a04'; // yellow-600
-      case '#green': return '#16a34a'; // green-600
-      case '#red': return '#dc2626'; // red-600
-      default: return '#4b5563'; // gray-600
+      case '#gray': return '#4b556380'; // gray-600 with opacity
+      case '#blue': return '#2563eb80'; // blue-600 with opacity
+      case '#yellow': return '#ca8a0480'; // yellow-600 with opacity
+      case '#green': return '#16a34a80'; // green-600 with opacity
+      case '#red': return '#dc262680'; // red-600 with opacity
+      default: return '#4b556380'; // gray-600 with opacity
     }
   };
 
   const getStatePatternStyle = (color?: string) => {
     const colorValue = getStateColor(color);
     return {
-      backgroundImage: `repeating-linear-gradient(315deg, ${colorValue}33 0, ${colorValue}33 1px, transparent 0, transparent 50%)`,
+      backgroundColor: colorValue,
+      backgroundImage: `repeating-linear-gradient(315deg, #6b728033 0, #6b728033 1px, transparent 0, transparent 50%)`,
       backgroundSize: '10px 10px',
       backgroundAttachment: 'fixed'
     } as React.CSSProperties;

@@ -298,7 +298,7 @@ export default function AllWorkflowsManager() {
                     <button
                       onClick={() => setSelectedWorkflowId(workflow.id)}
                       className="w-full px-3 py-2 text-white rounded text-sm transition-colors"
-                      style={{ backgroundColor: '#2563eb80' }}
+                      style={{ backgroundColor: '#a855f780' }}
                     >
                       Configure Workflow
                     </button>
