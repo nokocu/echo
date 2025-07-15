@@ -90,7 +90,7 @@ export default function TaskStatusBadge({
           />
           
           {/* dropdown menu */}
-          <div className="absolute right-0 mt-1 w-48 bg-gray-800 rounded-md shadow-lg border border-gray-700 z-20">
+          <div className="absolute right-0 mt-1 w-48 bg-gray-900 rounded shadow-lg border border-gray-700 z-20">
             <div className="py-1">
               <div className="px-3 py-2 text-xs font-medium text-gray-400 border-b border-gray-700">
                 available transitions:

@@ -125,8 +125,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="bg-gray-900 border border-gray-700 rounded">
-        <div className="p-6 border-b border-gray-700">
+      <div className="border border-gray-700 rounded">
+        <div className="bg-gray-900 p-6 border-b border-gray-700">
           <h3 className="text-xl font-semibold text-white">Recent tasks</h3>
         </div>
         

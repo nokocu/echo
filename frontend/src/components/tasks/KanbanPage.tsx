@@ -85,13 +85,22 @@ export default function KanbanBoard({ initialProjectId }: KanbanBoardProps) {
 
   const getStateColor = (color?: string) => {
     switch (color) {
-      case '#gray': return 'bg-gray-600';
-      case '#blue': return 'bg-blue-600';
-      case '#yellow': return 'bg-yellow-600';
-      case '#green': return 'bg-green-600';
-      case '#red': return 'bg-red-600';
-      default: return 'bg-gray-600';
+      case '#gray': return '#4b5563'; // gray-600
+      case '#blue': return '#2563eb'; // blue-600
+      case '#yellow': return '#ca8a04'; // yellow-600
+      case '#green': return '#16a34a'; // green-600
+      case '#red': return '#dc2626'; // red-600
+      default: return '#4b5563'; // gray-600
     }
+  };
+
+  const getStatePatternStyle = (color?: string) => {
+    const colorValue = getStateColor(color);
+    return {
+      backgroundImage: `repeating-linear-gradient(315deg, ${colorValue}33 0, ${colorValue}33 1px, transparent 0, transparent 50%)`,
+      backgroundSize: '10px 10px',
+      backgroundAttachment: 'fixed'
+    } as React.CSSProperties;
   };
 
   return (
@@ -156,10 +165,13 @@ export default function KanbanBoard({ initialProjectId }: KanbanBoardProps) {
                   
                   return (
                     <div key={state.id} className="border border-gray-700 rounded">
-                      <div className={`p-4 ${getStateColor(state.color)} rounded-t`}>
-                        <h3 className="text-white font-semibold flex items-center justify-between">
+                      <div 
+                        className="p-4 border-b border-gray-700 rounded-t"
+                        style={getStatePatternStyle(state.color)}
+                      >
+                        <h3 className="text-white font-semibold flex items-center justify-between px-3 py-2 rounded">
                           {state.name}
-                          <span className="bg-gray-900 text-xs px-2 py-1 rounded-full">
+                          <span className="text-xs px-2 py-1 rounded-full">
                             {columnTasks.length}
                           </span>
                         </h3>
