@@ -104,15 +104,24 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated }: Crea
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-gray-800 rounded-lg max-w-md w-full border border-gray-700">
+      <div className="bg-gray-900 rounded border border-gray-700 max-w-md w-full">
         <div className="p-6 border-b border-gray-700">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-white">Create New Task</h2>
+            <div>
+              <p className="font-mono text-xs/6 font-medium tracking-widest text-gray-600 uppercase dark:text-gray-400">
+                Add new task
+              </p>
+              <h2 className="mt-1 text-xl font-medium tracking-tight text-white">
+                Create Task
+              </h2>
+            </div>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-white transition-colors"
             >
-              ✕
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
             </button>
           </div>
         </div>
@@ -132,7 +141,7 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated }: Crea
               type="text"
               value={form.title}
               onChange={(e) => handleChange('title', e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Enter task title"
               required
             />
@@ -146,7 +155,7 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated }: Crea
               value={form.description}
               onChange={(e) => handleChange('description', e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Enter task description"
             />
           </div>
@@ -158,7 +167,7 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated }: Crea
             <select
               value={form.projectId}
               onChange={(e) => handleChange('projectId', parseInt(e.target.value))}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             >
               {projects.length === 0 ? (
@@ -180,7 +189,7 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated }: Crea
             <select
               value={form.priority}
               onChange={(e) => handleChange('priority', e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="Low">Low</option>
               <option value="Medium">Medium</option>
@@ -197,7 +206,7 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated }: Crea
               type="date"
               value={form.dueDate}
               onChange={(e) => handleChange('dueDate', e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
@@ -205,15 +214,17 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated }: Crea
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+              className="flex-1 px-4 py-2 text-white rounded transition-colors"
               disabled={loading}
+              style={{ backgroundColor: '#6b728080' }}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+              className="flex-1 px-4 py-2 text-white rounded transition-colors disabled:opacity-50"
               disabled={loading}
+              style={{ backgroundColor: '#2563eb80' }}
             >
               {loading ? 'Creating...' : 'Create Task'}
             </button>

@@ -350,13 +350,36 @@ export default function AllWorkflowsManager() {
       {/* Create Workflow Modal */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-white mb-4">Create New Workflow</h2>
+          <div className="bg-gray-900 rounded border border-gray-700 w-full max-w-md">
+            <div className="p-6 border-b border-gray-700">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-mono text-xs/6 font-medium tracking-widest text-gray-600 uppercase dark:text-gray-400">
+                    Create BPMN process
+                  </p>
+                  <h2 className="mt-1 text-xl font-medium tracking-tight text-white">
+                    New Workflow
+                  </h2>
+                </div>
+                <button
+                  onClick={() => {
+                    setIsCreateModalOpen(false);
+                    setNewWorkflowName('');
+                    setNewWorkflowDescription('');
+                  }}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
             
-            <div className="space-y-4">
+            <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Workflow Name
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Workflow Name *
                 </label>
                 <input
                   type="text"
@@ -368,37 +391,41 @@ export default function AllWorkflowsManager() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Description
                 </label>
                 <textarea
                   value={newWorkflowDescription}
                   onChange={(e) => setNewWorkflowDescription(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                   placeholder="Enter workflow description"
                   rows={3}
                 />
               </div>
             </div>
             
-            <div className="flex justify-end space-x-3 mt-6">
-              <button
-                onClick={() => {
-                  setIsCreateModalOpen(false);
-                  setNewWorkflowName('');
-                  setNewWorkflowDescription('');
-                }}
-                className="px-4 py-2 bg-gray-600 text-white rounded transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={createWorkflow}
-                disabled={creating || !newWorkflowName.trim()}
-                className="px-4 py-2 bg-blue-600 text-white rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {creating ? 'Creating...' : 'Create'}
-              </button>
+            <div className="p-6 border-t border-gray-700">
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => {
+                    setIsCreateModalOpen(false);
+                    setNewWorkflowName('');
+                    setNewWorkflowDescription('');
+                  }}
+                  className="px-4 py-2 text-white rounded transition-colors"
+                  style={{ backgroundColor: '#6b728080' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={createWorkflow}
+                  disabled={creating || !newWorkflowName.trim()}
+                  className="px-4 py-2 text-white rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: '#2563eb80' }}
+                >
+                  {creating ? 'Creating...' : 'Create'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -407,31 +434,66 @@ export default function AllWorkflowsManager() {
       {/* Confirm Replace Modal */}
       {confirmSwap && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-white mb-4">Confirm Workflow Assignment</h2>
-            
-            <div className="text-gray-300 mb-6">
-              <p className="mb-2">
-                Project "<strong>{confirmSwap.projectName}</strong>" already has an active workflow.
-              </p>
-              <p className="text-sm text-orange-400">
-                ⚠ This will replace the current active workflow and make it unassigned.
-              </p>
+          <div className="bg-gray-900 rounded border border-gray-700 w-full max-w-md">
+            <div className="p-6 border-b border-gray-700">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-mono text-xs/6 font-medium tracking-widest text-gray-600 uppercase dark:text-gray-400">
+                    Workflow assignment
+                  </p>
+                  <h2 className="mt-1 text-xl font-medium tracking-tight text-white">
+                    Confirm Replace
+                  </h2>
+                </div>
+                <button
+                  onClick={() => setConfirmSwap(null)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
             </div>
             
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => setConfirmSwap(null)}
-                className="px-4 py-2 bg-gray-600 text-white rounded transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmWorkflowSwap}
-                className="px-4 py-2 bg-orange-600 text-white rounded transition-colors"
-              >
-                Replace Workflow
-              </button>
+            <div className="p-6">
+              <div className="text-gray-300 mb-4">
+                <p className="mb-2">
+                  Project "<strong>{confirmSwap.projectName}</strong>" already has an active workflow.
+                </p>
+                <div className="bg-orange-900/30 border border-orange-700/50 text-orange-200 px-4 py-3 rounded text-sm">
+                  <div className="flex items-start">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4 text-orange-400 mr-2 mt-0.5 flex-shrink-0">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                    </svg>
+                    <div>
+                      <div className="font-medium">This will replace the current active workflow</div>
+                      <div className="text-sm mt-1">
+                        The existing workflow will become unassigned.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6 border-t border-gray-700">
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setConfirmSwap(null)}
+                  className="px-4 py-2 text-white rounded transition-colors"
+                  style={{ backgroundColor: '#6b728080' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmWorkflowSwap}
+                  className="px-4 py-2 text-white rounded transition-colors"
+                  style={{ backgroundColor: '#ea580c80' }}
+                >
+                  Replace Workflow
+                </button>
+              </div>
             </div>
           </div>
         </div>

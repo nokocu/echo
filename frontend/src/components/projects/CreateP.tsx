@@ -68,16 +68,25 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-gray-800 rounded-lg max-w-md w-full border border-gray-700">
+      <div className="bg-gray-900 rounded border border-gray-700 max-w-md w-full">
         <div className="p-6 border-b border-gray-700">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-white">Create New Project</h2>
+            <div>
+              <p className="font-mono text-xs/6 font-medium tracking-widest text-gray-600 uppercase dark:text-gray-400">
+                Create new workspace
+              </p>
+              <h2 className="mt-1 text-xl font-medium tracking-tight text-white">
+                Project Details
+              </h2>
+            </div>
             <button
               onClick={handleClose}
               disabled={loading}
               className="text-gray-400 hover:text-white transition-colors disabled:opacity-50"
             >
-              ✕
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
             </button>
           </div>
         </div>
@@ -99,7 +108,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                 id="projectName"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter project name"
                 required
                 disabled={loading}
@@ -115,7 +124,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={3}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 placeholder="Enter project description (optional)"
                 disabled={loading}
               />
@@ -130,7 +139,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                 id="startDate"
                 value={formData.startDate}
                 onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 disabled={loading}
               />
             </div>
@@ -141,14 +150,16 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
               type="button"
               onClick={handleClose}
               disabled={loading}
-              className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-2 text-white rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ backgroundColor: '#6b728080' }}
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading || !formData.name.trim()}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              className="flex-1 px-4 py-2 text-white rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              style={{ backgroundColor: '#2563eb80' }}
             >
               {loading ? (
                 <>
