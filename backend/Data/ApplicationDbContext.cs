@@ -15,6 +15,10 @@ public class ApplicationDbContext : IdentityDbContext<User>
     public DbSet<WorkflowState> WorkflowStates { get; set; }
     public DbSet<WorkflowTransition> WorkflowTransitions { get; set; }
     public DbSet<WorkflowAuditEntry> WorkflowAuditEntries { get; set; }
+    public DbSet<BpmnWorkflow> BpmnWorkflows { get; set; }
+    public DbSet<BpmnElement> BpmnElements { get; set; }
+    public DbSet<BpmnConnection> BpmnConnections { get; set; }
+    public DbSet<WorkflowProjectAssignment> WorkflowProjectAssignments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -88,8 +92,64 @@ public class ApplicationDbContext : IdentityDbContext<User>
             .HasForeignKey(wa => wa.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // seed default workflow states
-        // SeedDefaultWorkflowStates(builder);
+        // BPMN workflow relationships
+        builder.Entity<BpmnWorkflow>()
+            .HasOne(bw => bw.Project)
+            .WithMany()
+            .HasForeignKey(bw => bw.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<BpmnWorkflow>()
+            .HasOne(bw => bw.Owner)
+            .WithMany()
+            .HasForeignKey(bw => bw.OwnerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<BpmnWorkflow>()
+            .HasOne(bw => bw.ParentWorkflow)
+            .WithMany(bw => bw.ChildWorkflows)
+            .HasForeignKey(bw => bw.ParentWorkflowId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<BpmnElement>()
+            .HasOne(be => be.Workflow)
+            .WithMany()
+            .HasForeignKey(be => be.WorkflowId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<BpmnConnection>()
+            .HasOne(bc => bc.Workflow)
+            .WithMany()
+            .HasForeignKey(bc => bc.WorkflowId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // configure WorkflowProjectAssignment relationships
+        builder.Entity<WorkflowProjectAssignment>()
+            .HasOne(wpa => wpa.Workflow)
+            .WithMany(w => w.ProjectAssignments)
+            .HasForeignKey(wpa => wpa.WorkflowId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<WorkflowProjectAssignment>()
+            .HasOne(wpa => wpa.Project)
+            .WithMany(p => p.WorkflowAssignments)
+            .HasForeignKey(wpa => wpa.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // ensure unique combination of workflow and project
+        builder.Entity<WorkflowProjectAssignment>()
+            .HasIndex(wpa => new { wpa.WorkflowId, wpa.ProjectId })
+            .IsUnique();
+
+        // indexes for performance
+        builder.Entity<BpmnElement>()
+            .HasIndex(be => be.ElementId);
+
+        builder.Entity<BpmnConnection>()
+            .HasIndex(bc => bc.SourceElementId);
+
+        builder.Entity<BpmnConnection>()
+            .HasIndex(bc => bc.TargetElementId);
     }
 
     private static void SeedDefaultWorkflowStates(ModelBuilder builder)

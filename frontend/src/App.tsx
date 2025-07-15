@@ -5,6 +5,7 @@ import Layout from './components/layout/Layout';
 import Dashboard from './components/dashboard/Dashboard';
 import KanbanBoard from './components/tasks/KanbanBoard';
 import ProjectsManager from './components/projects/ProjectsManager';
+import AllWorkflowsManager from './components/workflow/AllWorkflowsManager';
 import LoginForm from './components/auth/LoginForm';
 import RegisterForm from './components/auth/RegisterForm';
 
@@ -34,12 +35,7 @@ function AuthenticatedApp() {
       case 'projects':
         return <ProjectsManager onViewTasks={handleViewProjectTasks} />;
       case 'workflow':
-        return (
-          <div className="p-6">
-            <h2 className="text-2xl font-bold text-white mb-4">Workflow Designer</h2>
-            <p className="text-gray-400">bpmn workflow designer</p>
-          </div>
-        );
+        return <AllWorkflowsManager />;
       default:
         return <Dashboard />;
     }

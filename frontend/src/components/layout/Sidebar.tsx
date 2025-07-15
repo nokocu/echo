@@ -7,7 +7,7 @@ const navigationItems = [
   { id: 'dashboard', label: 'dashboard', icon: '📊' },
   { id: 'tasks', label: 'tasks', icon: '📋' },
   { id: 'projects', label: 'projects', icon: '📁' },
-  { id: 'workflow', label: 'workflow', icon: '🔄' },
+  { id: 'workflow', label: 'workflow', icon: '⚙️' },
 ];
 
 export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {

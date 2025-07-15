@@ -145,6 +145,152 @@ namespace backend.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("backend.Models.BpmnConnection", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Condition")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ConnectionId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SourceElementId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TargetElementId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Waypoints")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("WorkflowId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SourceElementId");
+
+                    b.HasIndex("TargetElementId");
+
+                    b.HasIndex("WorkflowId");
+
+                    b.ToTable("BpmnConnections");
+                });
+
+            modelBuilder.Entity("backend.Models.BpmnElement", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ElementId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ElementType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<double>("Height")
+                        .HasColumnType("REAL");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Properties")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<double>("Width")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("WorkflowId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("X")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("Y")
+                        .HasColumnType("REAL");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ElementId");
+
+                    b.HasIndex("WorkflowId");
+
+                    b.ToTable("BpmnElements");
+                });
+
+            modelBuilder.Entity("backend.Models.BpmnWorkflow", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("BpmnJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("BpmnXml")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OwnerId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ParentWorkflowId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("ProjectId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
+
+                    b.HasIndex("ParentWorkflowId");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("BpmnWorkflows");
+                });
+
             modelBuilder.Entity("backend.Models.Project", b =>
                 {
                     b.Property<int>("Id")
@@ -354,6 +500,37 @@ namespace backend.Migrations
                     b.ToTable("WorkflowAuditEntries");
                 });
 
+            modelBuilder.Entity("backend.Models.WorkflowProjectAssignment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UnassignedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("WorkflowId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.HasIndex("WorkflowId", "ProjectId")
+                        .IsUnique();
+
+                    b.ToTable("WorkflowProjectAssignments");
+                });
+
             modelBuilder.Entity("backend.Models.WorkflowState", b =>
                 {
                     b.Property<int>("Id")
@@ -499,6 +676,53 @@ namespace backend.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("backend.Models.BpmnConnection", b =>
+                {
+                    b.HasOne("backend.Models.BpmnWorkflow", "Workflow")
+                        .WithMany()
+                        .HasForeignKey("WorkflowId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Workflow");
+                });
+
+            modelBuilder.Entity("backend.Models.BpmnElement", b =>
+                {
+                    b.HasOne("backend.Models.BpmnWorkflow", "Workflow")
+                        .WithMany()
+                        .HasForeignKey("WorkflowId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Workflow");
+                });
+
+            modelBuilder.Entity("backend.Models.BpmnWorkflow", b =>
+                {
+                    b.HasOne("backend.Models.User", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("backend.Models.BpmnWorkflow", "ParentWorkflow")
+                        .WithMany("ChildWorkflows")
+                        .HasForeignKey("ParentWorkflowId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("backend.Models.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Owner");
+
+                    b.Navigation("ParentWorkflow");
+
+                    b.Navigation("Project");
+                });
+
             modelBuilder.Entity("backend.Models.Project", b =>
                 {
                     b.HasOne("backend.Models.User", "Owner")
@@ -571,6 +795,25 @@ namespace backend.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("backend.Models.WorkflowProjectAssignment", b =>
+                {
+                    b.HasOne("backend.Models.Project", "Project")
+                        .WithMany("WorkflowAssignments")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("backend.Models.BpmnWorkflow", "Workflow")
+                        .WithMany("ProjectAssignments")
+                        .HasForeignKey("WorkflowId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+
+                    b.Navigation("Workflow");
+                });
+
             modelBuilder.Entity("backend.Models.WorkflowState", b =>
                 {
                     b.HasOne("backend.Models.Project", "Project")
@@ -601,9 +844,18 @@ namespace backend.Migrations
                     b.Navigation("ToState");
                 });
 
+            modelBuilder.Entity("backend.Models.BpmnWorkflow", b =>
+                {
+                    b.Navigation("ChildWorkflows");
+
+                    b.Navigation("ProjectAssignments");
+                });
+
             modelBuilder.Entity("backend.Models.Project", b =>
                 {
                     b.Navigation("Tasks");
+
+                    b.Navigation("WorkflowAssignments");
 
                     b.Navigation("WorkflowStates");
                 });

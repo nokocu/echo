@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { tasksService } from '../../services/tasks';
+import { bpmnService } from '../../services/bpmn';
 import type { Project } from '../../types/api';
 import CreateProjectModal from './CreateProjectModal';
 import EditProjectModal from './EditProjectModal';
 import DeleteProjectModal from './DeleteProjectModal';
+import BpmnWorkflowDesigner from '../workflow/BpmnWorkflowDesigner';
 
 interface ProjectsManagerProps {
   onViewTasks?: (projectId: number) => void;
@@ -17,6 +19,9 @@ export default function ProjectsManager({ onViewTasks }: ProjectsManagerProps) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [selectedWorkflowId, setSelectedWorkflowId] = useState<number | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const [isWorkflowDesignerOpen, setIsWorkflowDesignerOpen] = useState(false);
 
   const fetchProjects = async () => {
     try {
@@ -53,6 +58,49 @@ export default function ProjectsManager({ onViewTasks }: ProjectsManagerProps) {
     setIsDeleteModalOpen(true);
   };
 
+  const handleConfigureWorkflow = async (projectId: number) => {
+    try {
+      // get workflows for this project
+      const workflows = await bpmnService.getWorkflows(projectId);
+      
+      if (workflows.length > 0) {
+        // use the first workflow for this project
+        setSelectedWorkflowId(workflows[0].id);
+      } else {
+        // create a new workflow for this project
+        const project = projects.find(p => p.id === projectId);
+        const workflowName = project ? `${project.name} Workflow` : `Project ${projectId} Workflow`;
+        
+        const newWorkflow = await bpmnService.createWorkflow({
+          name: workflowName,
+          description: `Workflow for project: ${project?.name || projectId}`,
+          projectId: projectId,
+          bpmnXml: `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.0.0">
+  <bpmn:process id="Process_1" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="179" y="79" width="36" height="36" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>`
+        });
+        
+        setSelectedWorkflowId(newWorkflow.id);
+      }
+      
+      setSelectedProjectId(projectId);
+      setIsWorkflowDesignerOpen(true);
+    } catch (error) {
+      console.error('Failed to configure workflow:', error);
+      setError('Failed to configure workflow');
+    }
+  };
+
   const handleProjectUpdated = () => {
     fetchProjects();
     setSelectedProject(null);
@@ -62,6 +110,21 @@ export default function ProjectsManager({ onViewTasks }: ProjectsManagerProps) {
     fetchProjects();
     setSelectedProject(null);
   };
+
+  // show BpmnWorkflowDesigner if it's open
+  if (isWorkflowDesignerOpen && selectedWorkflowId && selectedProjectId) {
+    return (
+      <BpmnWorkflowDesigner
+        workflowId={selectedWorkflowId}
+        projectId={selectedProjectId}
+        onClose={() => {
+          setIsWorkflowDesignerOpen(false);
+          setSelectedWorkflowId(null);
+          setSelectedProjectId(null);
+        }}
+      />
+    );
+  }
 
   if (loading) {
     return (
@@ -90,7 +153,7 @@ export default function ProjectsManager({ onViewTasks }: ProjectsManagerProps) {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-white mb-2">Project Management</h2>
-            <p className="text-gray-400">Manage your projects and their workflow configurations</p>
+            <p className="text-gray-400">Manage your projects and configure BPMN workflows</p>
           </div>
           <button
             onClick={handleCreateProject}
@@ -122,6 +185,7 @@ export default function ProjectsManager({ onViewTasks }: ProjectsManagerProps) {
               onEdit={handleEditProject}
               onDelete={handleDeleteProject}
               onViewTasks={onViewTasks}
+              onConfigureWorkflow={handleConfigureWorkflow}
             />
           ))}
         </div>
@@ -155,9 +219,10 @@ interface ProjectCardProps {
   onEdit: (project: Project) => void;
   onDelete: (project: Project) => void;
   onViewTasks?: (projectId: number) => void;
+  onConfigureWorkflow?: (projectId: number) => void;
 }
 
-function ProjectCard({ project, onEdit, onDelete, onViewTasks }: ProjectCardProps) {
+function ProjectCard({ project, onEdit, onDelete, onViewTasks, onConfigureWorkflow }: ProjectCardProps) {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pl-PL');
   };
@@ -167,13 +232,6 @@ function ProjectCard({ project, onEdit, onDelete, onViewTasks }: ProjectCardProp
       <div className="flex items-start justify-between mb-4">
         <h3 className="text-xl font-semibold text-white">{project.name}</h3>
         <div className="flex space-x-2">
-          <button
-            onClick={() => onEdit(project)}
-            className="text-gray-400 hover:text-blue-400 transition-colors"
-            title="Edit project"
-          >
-            ✏️
-          </button>
           <button
             onClick={() => onDelete(project)}
             className="text-gray-400 hover:text-red-400 transition-colors"
@@ -206,19 +264,27 @@ function ProjectCard({ project, onEdit, onDelete, onViewTasks }: ProjectCardProp
       </div>
 
       <div className="mt-6 pt-4 border-t border-gray-700">
-        <div className="flex space-x-2">
-          <button 
-            onClick={() => onViewTasks?.(project.id)}
-            className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+        <div className="space-y-2">
+          <div className="grid grid-cols-3 gap-2">
+            <button 
+            onClick={() => onConfigureWorkflow?.(project.id)}
+            className="px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-sm"
           >
-            View Tasks
+            <span>Workflow</span>
           </button>
-          <button 
-            onClick={() => alert('Workflow configuration coming soon!')}
-            className="flex-1 px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors text-sm"
-          >
-            Configure Workflow
-          </button>
+            <button 
+              onClick={() => onViewTasks?.(project.id)}
+              className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+            >
+              Tasks
+            </button>
+            <button 
+              onClick={() => onEdit(project)}
+              className="px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors text-sm"
+            >
+              Edit
+            </button>
+          </div>
         </div>
       </div>
     </div>
