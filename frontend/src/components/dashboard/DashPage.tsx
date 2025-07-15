@@ -3,6 +3,15 @@ import { tasksService } from '../../services/tasks';
 import type { TaskItem, Project } from '../../types/api';
 import CreateTaskModal from '../tasks/CreateT';
 
+// Function to create diagonal stripe pattern for cards
+const getCardPatternStyle = (color: string) => {
+  return {
+    backgroundImage: `repeating-linear-gradient(315deg, ${color}99 0, ${color}99 1px, transparent 0, transparent 50%)`,
+    backgroundSize: '10px 10px',
+    backgroundAttachment: 'fixed'
+  } as React.CSSProperties;
+};
+
 const statusColors = {
   'Todo': 'bg-gray-600',
   'In Progress': 'bg-blue-600',
@@ -126,8 +135,10 @@ export default function Dashboard() {
       </div>
 
       <div className="border border-gray-700 rounded">
-        <div className="bg-gray-900 p-6 border-b border-gray-700">
-          <h3 className="text-xl font-semibold text-white">Recent tasks</h3>
+        <div className="" style={getCardPatternStyle('#6b7280')}>
+          <div className="bg-gray-900/70 p-6 rounded-t border-b border-gray-700">
+            <h3 className="text-xl font-semibold text-white">Recent tasks</h3>
+          </div>
         </div>
         
         {tasks.length === 0 ? (

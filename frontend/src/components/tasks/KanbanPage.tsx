@@ -138,7 +138,7 @@ export default function KanbanBoard({ initialProjectId }: KanbanBoardProps) {
               </div>
               <button
                 onClick={() => setIsCreateModalOpen(true)}
-                className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors flex items-center space-x-2"
               >
                 <span>+</span>
                 <span>Create Task</span>
