@@ -275,14 +275,14 @@ export default function BpmnWorkflowDesigner({
                 modelerRef.current = null;
               }
             }}
-            className="px-4 py-2 text-white rounded-md transition-colors"
+            className="px-4 py-2 text-white rounded transition-colors"
             style={{ backgroundColor: '#2563eb80' }}
           >
             Retry
           </button>
           <button
             onClick={onClose}
-            className="px-4 py-2 text-white rounded-md transition-colors"
+            className="px-4 py-2 text-white rounded transition-colors"
             style={{ backgroundColor: '#6b728080' }}
           >
             Back
@@ -330,7 +330,7 @@ export default function BpmnWorkflowDesigner({
                   type="text"
                   value={workflowName}
                   onChange={(e) => setWorkflowName(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Workflow name"
                 />
               </div>
@@ -339,23 +339,19 @@ export default function BpmnWorkflowDesigner({
                   type="text"
                   value={workflowDescription}
                   onChange={(e) => setWorkflowDescription(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Description"
                 />
               </div>
             </div>
           </div>
           <div className="flex items-center space-x-3">
-            {workflow?.isActive && (
-              <span className="px-3 py-1 text-white text-sm rounded-full" style={{ backgroundColor: '#16a34a80' }}>
-                Active
-              </span>
-            )}
+
 
             <button
               onClick={saveWorkflow}
               disabled={saving}
-              className="px-4 py-2 text-white rounded-md transition-colors disabled:opacity-50"
+              className="px-4 py-2 text-white rounded transition-colors disabled:opacity-50"
               style={{ backgroundColor: '#2563eb80' }}
             >
               {saving ? 'Saving...' : 'Save'}
@@ -363,7 +359,7 @@ export default function BpmnWorkflowDesigner({
             {onClose && (
               <button
                 onClick={onClose}
-                className="px-4 py-2 text-white rounded-md transition-colors"
+                className="px-4 py-2 text-white rounded transition-colors"
                 style={{ backgroundColor: '#6b728080' }}
               >
                 Close

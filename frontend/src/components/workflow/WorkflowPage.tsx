@@ -251,19 +251,18 @@ export default function AllWorkflowsManager() {
                         </svg>
                         <span>{workflow.project?.name || 'Unassigned'}</span>
                       </div>
-                      {!workflow.project && (
-                        <span className="px-2 py-1 bg-orange-600 text-white text-xs rounded-full">
-                          Unassigned
-                        </span>
-                      )}
                     </div>
                   </div>
                   <div className="flex items-start space-x-2">
-                    {workflow.isActive && (
+                    {!workflow.project ? (
+                      <span className="px-2 py-1 bg-orange-600 text-white text-xs rounded">
+                        Unassigned
+                      </span>
+                    ) : workflow.isActive ? (
                       <span className="px-2 py-1 bg-green-600 text-white text-xs rounded">
                         Active
                       </span>
-                    )}
+                    ) : null}
                     <button
                       onClick={() => duplicateWorkflow(workflow.id)}
                       className="text-gray-400 hover:text-blue-400 transition-colors"
