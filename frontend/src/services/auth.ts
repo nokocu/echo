@@ -38,6 +38,7 @@ export const authService = {
   logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('selectedProjectId'); // clear project selection on logout
   },
 
   getCurrentUser(): User | null {
