@@ -1,4 +1,4 @@
-## Echo Task Management System
+## Tasque - Task Management System
 
 A task management application with workflow visualization.
 
