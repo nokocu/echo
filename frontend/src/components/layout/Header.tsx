@@ -19,11 +19,11 @@ export default function Header() {
                   <div
                     className="flex items-center gap-0.5 rounded-2xl bg-gray-950/5 py-0.5 pr-2.5 pl-2.5 text-xs/5 font-medium text-gray-950 tabular-nums hover:bg-gray-950/7.5 data-active:bg-gray-950/7.5 dark:bg-white/10 dark:text-white dark:hover:bg-white/12.5 dark:data-active:bg-white/12.5"
                   >
-                    v0.9.0
+                    v1.0.0
                   </div>
                   <a
                     aria-label="GitHub repository"
-                    href="https://github.com/nokocu/echo-tasks"
+                    href="https://github.com/nokocu/tasque"
                   >
                     <svg
                       viewBox="0 0 20 20"

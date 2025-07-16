@@ -118,9 +118,9 @@ public class WorkflowController : ControllerBase
 
         try
         {
-            var result = await _workflowEngine.TransitionAsync(taskId, request.ToStateId, userId, request.Comment);
+            var result = await _workflowEngine.TransitionTaskAsync(taskId, request.ToStateId, userId, request.Comment);
             
-            if (result.Success)
+            if (result)
             {
                 _logger.LogInformation("Task {TaskId} successfully transitioned to state {StateId}", 
                     taskId, request.ToStateId);
@@ -128,8 +128,8 @@ public class WorkflowController : ControllerBase
             }
             else
             {
-                _logger.LogWarning("Task transition failed: {ErrorMessage}", result.ErrorMessage);
-                return BadRequest(new { success = false, message = result.ErrorMessage });
+                _logger.LogWarning("Task transition failed for task {TaskId} to state {StateId}", taskId, request.ToStateId);
+                return BadRequest(new { success = false, message = "Task transition failed" });
             }
         }
         catch (Exception ex)
@@ -180,156 +180,9 @@ public class WorkflowController : ControllerBase
         return Ok(auditEntries);
     }
 
-    // POST: api/workflow/process-automatic/{projectId}
-    [HttpPost("process-automatic/{projectId}")]
-    public async Task<IActionResult> ProcessAutomaticTransitions(int projectId)
-    {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userId))
-        {
-            return Unauthorized();
-        }
 
-        // verify project ownership
-        var project = await _context.Projects
-            .FirstOrDefaultAsync(p => p.Id == projectId && p.OwnerId == userId);
-        
-        if (project == null)
-        {
-            return NotFound("Project not found");
-        }
 
-        _logger.LogInformation("Processing automatic transitions for project {ProjectId}", projectId);
 
-        try
-        {
-            var processedTasks = await _workflowEngine.ProcessAutomaticTransitionsAsync(projectId);
-            
-            _logger.LogInformation("Processed {Count} automatic transitions for project {ProjectId}", 
-                processedTasks.Count, projectId);
-            
-            return Ok(new { 
-                success = true, 
-                message = $"Processed {processedTasks.Count} automatic transitions",
-                processedTasks = processedTasks.Select(t => new { t.Id, t.Title }).ToList()
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error processing automatic transitions for project {ProjectId}", projectId);
-            return StatusCode(500, new { success = false, message = "Internal server error" });
-        }
-    }
-
-    // POST: api/workflow/initialize-transitions/{projectId}
-    [HttpPost("initialize-transitions/{projectId}")]
-    public async Task<ActionResult> InitializeDefaultTransitions(int projectId)
-    {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userId))
-        {
-            return Unauthorized();
-        }
-
-        // verify project ownership
-        var project = await _context.Projects
-            .FirstOrDefaultAsync(p => p.Id == projectId && p.OwnerId == userId);
-        
-        if (project == null)
-        {
-            return NotFound("Project not found");
-        }
-
-        // check if transitions already exist
-        var existingTransitions = await _context.WorkflowTransitions
-            .Include(wt => wt.FromState)
-            .Where(wt => wt.FromState.ProjectId == projectId)
-            .AnyAsync();
-
-        if (existingTransitions)
-        {
-            return BadRequest("Project already has workflow transitions configured");
-        }
-
-        // get workflow states for this project
-        var workflowStates = await _context.WorkflowStates
-            .Where(ws => ws.ProjectId == projectId)
-            .OrderBy(ws => ws.Order)
-            .ToListAsync();
-
-        if (workflowStates.Count < 4)
-        {
-            return BadRequest("Project must have at least 4 workflow states (TODO, IN_PROGRESS, COMPLETED, BLOCKED)");
-        }
-
-        // create default transitions based on state types
-        var todoState = workflowStates.FirstOrDefault(ws => ws.Type == WorkflowStateType.Start);
-        var inProgressState = workflowStates.FirstOrDefault(ws => ws.Type == WorkflowStateType.InProgress);
-        var completedState = workflowStates.FirstOrDefault(ws => ws.Type == WorkflowStateType.Completed);
-        var blockedState = workflowStates.FirstOrDefault(ws => ws.Type == WorkflowStateType.Review);
-
-        if (todoState == null || inProgressState == null || completedState == null || blockedState == null)
-        {
-            return BadRequest("Project is missing required workflow state types");
-        }
-
-        var transitions = new[]
-        {
-            new WorkflowTransition
-            {
-                Name = "Start Progress",
-                FromStateId = todoState.Id,
-                ToStateId = inProgressState.Id,
-                Order = 1,
-                IsAutomatic = false
-            },
-            new WorkflowTransition
-            {
-                Name = "Complete Task",
-                FromStateId = inProgressState.Id,
-                ToStateId = completedState.Id,
-                Order = 2,
-                IsAutomatic = false
-            },
-            new WorkflowTransition
-            {
-                Name = "Block Task",
-                FromStateId = todoState.Id,
-                ToStateId = blockedState.Id,
-                Order = 3,
-                IsAutomatic = false
-            },
-            new WorkflowTransition
-            {
-                Name = "Block In Progress",
-                FromStateId = inProgressState.Id,
-                ToStateId = blockedState.Id,
-                Order = 4,
-                IsAutomatic = false
-            },
-            new WorkflowTransition
-            {
-                Name = "Unblock to TODO",
-                FromStateId = blockedState.Id,
-                ToStateId = todoState.Id,
-                Order = 5,
-                IsAutomatic = false
-            },
-            new WorkflowTransition
-            {
-                Name = "Reopen Task",
-                FromStateId = completedState.Id,
-                ToStateId = todoState.Id,
-                Order = 6,
-                IsAutomatic = false
-            }
-        };
-
-        _context.WorkflowTransitions.AddRange(transitions);
-        await _context.SaveChangesAsync();
-
-        return Ok(new { message = "Default workflow transitions initialized successfully", transitionsCount = transitions.Length });
-    }
 }
 
 // DTOs for API responses

@@ -60,10 +60,4 @@ export const workflowService = {
     const response = await api.get(`/workflow/audit/${taskId}`);
     return response.data;
   },
-
-  // process automatic transitions
-  async processAutomaticTransitions(projectId: number): Promise<any> {
-    const response = await api.post(`/workflow/process-automatic/${projectId}`);
-    return response.data;
-  },
 };
