@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './components/layout/Layout';
@@ -14,12 +14,67 @@ const queryClient = new QueryClient();
 function AuthenticatedApp() {
   const { isAuthenticated } = useAuth();
   const [showRegister, setShowRegister] = useState(false);
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  
+  // Initialize activeTab from URL hash immediately
+  const getInitialTab = () => {
+    const hash = window.location.hash.replace('#', '');
+    const validTabs = ['dashboard', 'tasks', 'projects', 'workflow'];
+    return validTabs.includes(hash) ? hash : 'dashboard';
+  };
+  
+  const [activeTab, setActiveTab] = useState(getInitialTab);
+  
+  // Initialize selectedProjectId from localStorage immediately
+  const getInitialProjectId = () => {
+    const savedProjectId = localStorage.getItem('selectedProjectId');
+    return savedProjectId ? parseInt(savedProjectId, 10) : null;
+  };
+  
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(getInitialProjectId);
+
+  // Initialize state from URL and localStorage
+  useEffect(() => {
+    // Listen for hash changes
+    const handleHashChange = () => {
+      const newHash = window.location.hash.replace('#', '');
+      const validTabs = ['dashboard', 'tasks', 'projects', 'workflow'];
+      if (validTabs.includes(newHash)) {
+        setActiveTab(newHash);
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  // Update URL when activeTab changes
+  useEffect(() => {
+    if (activeTab && window.location.hash !== `#${activeTab}`) {
+      window.history.replaceState(null, '', `#${activeTab}`);
+    }
+  }, [activeTab]);
+
+  // Save selected project to localStorage
+  useEffect(() => {
+    if (selectedProjectId !== null) {
+      localStorage.setItem('selectedProjectId', selectedProjectId.toString());
+    } else {
+      localStorage.removeItem('selectedProjectId');
+    }
+  }, [selectedProjectId]);
 
   const handleViewProjectTasks = (projectId: number) => {
     setSelectedProjectId(projectId);
     setActiveTab('tasks');
+  };
+
+  const handleProjectSelectionChange = (projectId: number | null) => {
+    setSelectedProjectId(projectId);
+  };
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    window.history.pushState(null, '', `#${tab}`);
   };
 
   const handleAuthSuccess = () => {
@@ -31,7 +86,7 @@ function AuthenticatedApp() {
       case 'dashboard':
         return <Dashboard />;
       case 'tasks':
-        return <KanbanBoard initialProjectId={selectedProjectId} />;
+        return <KanbanBoard initialProjectId={selectedProjectId} onProjectChange={handleProjectSelectionChange} />;
       case 'projects':
         return <ProjectsManager onViewTasks={handleViewProjectTasks} />;
       case 'workflow':
@@ -56,7 +111,7 @@ function AuthenticatedApp() {
   }
 
   return (
-    <Layout activeTab={activeTab} onTabChange={setActiveTab}>
+    <Layout activeTab={activeTab} onTabChange={handleTabChange}>
       {renderContent()}
     </Layout>
   );

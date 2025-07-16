@@ -11,9 +11,10 @@ import ProjectSelector from './Selector';
 
 interface KanbanBoardProps {
   initialProjectId?: number | null;
+  onProjectChange?: (projectId: number | null) => void;
 }
 
-export default function KanbanBoard({ initialProjectId }: KanbanBoardProps) {
+export default function KanbanBoard({ initialProjectId, onProjectChange }: KanbanBoardProps) {
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [workflowStates, setWorkflowStates] = useState<WorkflowState[]>([]);
   const [selectedProject, setSelectedProject] = useState<number | null>(initialProjectId || null);
@@ -24,6 +25,13 @@ export default function KanbanBoard({ initialProjectId }: KanbanBoardProps) {
       setSelectedProject(initialProjectId);
     }
   }, [initialProjectId]);
+
+  // Save selected project to localStorage when it changes
+  useEffect(() => {
+    if (selectedProject !== null) {
+      localStorage.setItem('selectedProjectId', selectedProject.toString());
+    }
+  }, [selectedProject]);
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -62,6 +70,7 @@ export default function KanbanBoard({ initialProjectId }: KanbanBoardProps) {
 
   const handleProjectChange = (projectId: number) => {
     setSelectedProject(projectId);
+    onProjectChange?.(projectId);
   };
 
   const handleTaskCreated = () => {
