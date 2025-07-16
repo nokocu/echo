@@ -36,7 +36,6 @@ public class BpmnWorkflow
     
     // Navigation properties
     public ICollection<BpmnWorkflow> ChildWorkflows { get; set; } = new List<BpmnWorkflow>();
-    public ICollection<WorkflowProjectAssignment> ProjectAssignments { get; set; } = new List<WorkflowProjectAssignment>();
 }
 
 public class BpmnElement

@@ -23,5 +23,4 @@ public class Project
     
     public ICollection<TaskItem> Tasks { get; set; } = new List<TaskItem>();
     public ICollection<WorkflowState> WorkflowStates { get; set; } = new List<WorkflowState>();
-    public ICollection<WorkflowProjectAssignment> WorkflowAssignments { get; set; } = new List<WorkflowProjectAssignment>();
 }

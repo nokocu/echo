@@ -18,7 +18,6 @@ public class ApplicationDbContext : IdentityDbContext<User>
     public DbSet<BpmnWorkflow> BpmnWorkflows { get; set; }
     public DbSet<BpmnElement> BpmnElements { get; set; }
     public DbSet<BpmnConnection> BpmnConnections { get; set; }
-    public DbSet<WorkflowProjectAssignment> WorkflowProjectAssignments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -122,24 +121,6 @@ public class ApplicationDbContext : IdentityDbContext<User>
             .WithMany()
             .HasForeignKey(bc => bc.WorkflowId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        // configure WorkflowProjectAssignment relationships
-        builder.Entity<WorkflowProjectAssignment>()
-            .HasOne(wpa => wpa.Workflow)
-            .WithMany(w => w.ProjectAssignments)
-            .HasForeignKey(wpa => wpa.WorkflowId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        builder.Entity<WorkflowProjectAssignment>()
-            .HasOne(wpa => wpa.Project)
-            .WithMany(p => p.WorkflowAssignments)
-            .HasForeignKey(wpa => wpa.ProjectId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        // ensure unique combination of workflow and project
-        builder.Entity<WorkflowProjectAssignment>()
-            .HasIndex(wpa => new { wpa.WorkflowId, wpa.ProjectId })
-            .IsUnique();
 
         // indexes for performance
         builder.Entity<BpmnElement>()
