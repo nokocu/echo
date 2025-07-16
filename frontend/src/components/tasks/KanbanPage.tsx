@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { tasksService } from '../../services/tasks';
 import { workflowService } from '../../services/workflow';
+import { bpmnService } from '../../services/bpmn';
 import type { TaskItem } from '../../types/api';
 import type { WorkflowState } from '../../services/workflow';
 import CreateTaskModal from './CreateT';
@@ -8,6 +9,7 @@ import DeleteTaskModal from './DeleteT';
 import TaskStatusBadge from './TaskBadge';
 import TaskAuditHistory from './TaskHistory';
 import ProjectSelector from './Selector';
+import BpmnWorkflowDesigner from '../workflow/Designer';
 
 interface KanbanBoardProps {
   initialProjectId?: number | null;
@@ -18,6 +20,8 @@ export default function KanbanBoard({ initialProjectId, onProjectChange }: Kanba
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [workflowStates, setWorkflowStates] = useState<WorkflowState[]>([]);
   const [selectedProject, setSelectedProject] = useState<number | null>(initialProjectId || null);
+  const [selectedWorkflowId, setSelectedWorkflowId] = useState<number | null>(null);
+  const [isWorkflowDesignerOpen, setIsWorkflowDesignerOpen] = useState(false);
 
   // update selected project when initialProjectId changes
   useEffect(() => {
@@ -87,6 +91,51 @@ export default function KanbanBoard({ initialProjectId, onProjectChange }: Kanba
     setSelectedTask(null);
   };
 
+  const handleConfigureWorkflow = async () => {
+    if (!selectedProject) return;
+
+    try {
+      // Get workflows for this project
+      const workflows = await bpmnService.getWorkflows(selectedProject);
+      
+      if (workflows.length > 0) {
+        // Use the first workflow for this project
+        setSelectedWorkflowId(workflows[0].id);
+      } else {
+        // Create a new workflow for this project - find project name first
+        const projects = await tasksService.getProjects();
+        const project = projects.find(p => p.id === selectedProject);
+        const workflowName = project ? `${project.name} Workflow` : `Project ${selectedProject} Workflow`;
+        
+        const newWorkflow = await bpmnService.createWorkflow({
+          name: workflowName,
+          description: `Workflow for project: ${project?.name || selectedProject}`,
+          projectId: selectedProject,
+          bpmnXml: `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd" id="sample-diagram" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn2:process id="Process_1" isExecutable="false">
+    <bpmn2:startEvent id="StartEvent_1"/>
+  </bpmn2:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds height="36.0" width="36.0" x="412.0" y="240.0"/>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn2:definitions>`
+        });
+        
+        setSelectedWorkflowId(newWorkflow.id);
+      }
+      
+      setIsWorkflowDesignerOpen(true);
+    } catch (error) {
+      console.error('Failed to configure workflow:', error);
+      setError('Failed to configure workflow');
+    }
+  };
+
   const handleStatusChange = async (taskId: number, newStateId: number) => {
     try {
       await workflowService.transitionTask(taskId, { 
@@ -126,6 +175,20 @@ export default function KanbanBoard({ initialProjectId, onProjectChange }: Kanba
     } as React.CSSProperties;
   };
 
+  // Render BPMN Workflow Designer if open
+  if (isWorkflowDesignerOpen && selectedWorkflowId && selectedProject) {
+    return (
+      <BpmnWorkflowDesigner
+        workflowId={selectedWorkflowId}
+        projectId={selectedProject}
+        onClose={() => {
+          setIsWorkflowDesignerOpen(false);
+          setSelectedWorkflowId(null);
+        }}
+      />
+    );
+  }
+
   return (
     <div className="isolate mx-auto grid w-full max-w-2xl grid-cols-1 gap-10 pt-10 md:pb-24 xl:max-w-7xl">
       <div className="px-4 sm:px-6">
@@ -139,12 +202,13 @@ export default function KanbanBoard({ initialProjectId, onProjectChange }: Kanba
         </div>
 
         {/* Project Selector */}
-        <div className="mt-8">
+        <div className="mt-8 flex items-center justify-between">
           <ProjectSelector
             selectedProjectId={selectedProject}
             onProjectChange={handleProjectChange}
             onCreateProject={() => {}}
           />
+          
         </div>
 
         {!selectedProject ? (
@@ -159,6 +223,17 @@ export default function KanbanBoard({ initialProjectId, onProjectChange }: Kanba
               <div>
                 <p className="text-gray-400 text-sm">Manage tasks across workflow states • Click status badges to change states</p>
               </div>
+              {selectedProject && (
+                <button
+                  onClick={handleConfigureWorkflow}
+                  className="px-4 py-2 text-white rounded transition-colors flex items-center space-x-2"
+                  style={{ backgroundColor: '#a855f780' }}
+                  title="View project workflow"
+                >
+
+                  <span>View Workflow</span>
+                </button>
+              )}
               <button
                 onClick={() => setIsCreateModalOpen(true)}
                 className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors flex items-center space-x-2"
