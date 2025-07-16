@@ -257,15 +257,6 @@ export default function BpmnWorkflowDesigner({
     }
   };
 
-  const activateWorkflow = async () => {
-    try {
-      await bpmnService.activateWorkflow(workflowId);
-      // refresh workflow data to get updated status
-      await loadWorkflow();
-    } catch (err: any) {
-      setError(err.message || 'Failed to activate workflow');
-    }
-  };
 
   if (error) {
     return (
