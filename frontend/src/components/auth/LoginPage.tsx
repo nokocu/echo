@@ -37,7 +37,7 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
             Welcome back
           </p>
           <h2 className="mt-2 text-3xl font-medium tracking-tight text-white">
-            echo-tasks
+            Tasque
           </h2>
           <p className="mt-2 text-gray-400">sign in to your account</p>
         </div>

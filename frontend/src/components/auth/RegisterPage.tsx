@@ -48,7 +48,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
             Join the platform
           </p>
           <h2 className="mt-2 text-3xl font-medium tracking-tight text-white">
-            echo-tasks
+            Tasque
           </h2>
           <p className="mt-2 text-gray-400">create your account</p>
         </div>

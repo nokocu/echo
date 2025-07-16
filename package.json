@@ -1,5 +1,5 @@
 {
-  "name": "echo",
+  "name": "tasque",
   "version": "1.0.0",
   "description": "**Focus:** C#, .NET, React, SQL, BPMN",
   "main": "index.js",
@@ -11,13 +11,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nokocu/echo.git"
+    "url": "git+https://github.com/nokocu/tasque.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/nokocu/echo/issues"
+    "url": "https://github.com/nokocu/tasque/issues"
   },
-  "homepage": "https://github.com/nokocu/echo#readme"
+  "homepage": "https://github.com/nokocu/tasque#readme"
 }

@@ -2,7 +2,7 @@ using backend.Models;
 using backend.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace backend.Services
+namespace backend.Controllers
 {
     public class WorkflowEngine
     {
@@ -18,31 +18,39 @@ namespace backend.Services
             var task = await _context.Tasks.FindAsync(taskId);
             if (task == null) return false;
 
-            var toState = await _context.WorkflowStates.FindAsync(toStateId);
-            if (toState == null) return false;
-
-            var fromState = await _context.WorkflowStates.FindAsync(task.WorkflowStateId);
-            
-            if (toState.ProjectId != fromState?.ProjectId) return false;
-
+            var fromStateId = task.WorkflowStateId;
             task.WorkflowStateId = toStateId;
-            task.UpdatedAt = DateTime.UtcNow;
 
+            // Create audit entry
             var auditEntry = new WorkflowAuditEntry
             {
                 TaskId = taskId,
-                FromStateId = fromState.Id,
+                FromStateId = fromStateId,
                 ToStateId = toStateId,
                 UserId = userId,
                 Comment = comment,
-                TransitionedAt = DateTime.UtcNow,
-                SystemInfo = "Manual transition"
+                TransitionedAt = DateTime.UtcNow
             };
 
             _context.WorkflowAuditEntries.Add(auditEntry);
-            await _context.SaveChangesAsync();
 
-            return true;
+            try
+            {
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<List<WorkflowAuditEntry>> GetTaskAuditHistoryAsync(int taskId)
+        {
+            return await _context.WorkflowAuditEntries
+                .Where(entry => entry.TaskId == taskId)
+                .OrderBy(entry => entry.TransitionedAt)
+                .ToListAsync();
         }
     }
 }
